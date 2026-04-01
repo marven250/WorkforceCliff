@@ -1,9 +1,14 @@
 import { useState } from "react";
-import { Contact } from "../../models/Contact";
+import { Contact } from "../../../../shared/Contact";
 import { Button, TextField } from "@mui/material";
 import "./NewContactForm.css";
 
-export default function NewContactForm() {
+interface NewContactFormProps {
+  setContacts: (contacts: Array<Contact>)=> void,
+  contacts: Array<Contact>
+}
+
+export default function NewContactForm({setContacts, contacts}: NewContactFormProps ) {
   const BASE_URL = "http://localhost:3001";
 
   const [name, setName] = useState("");
@@ -19,6 +24,10 @@ export default function NewContactForm() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(contact),
+    }).then(()=>{
+      setContacts([...contacts, contact])
+    }).catch(err=>{
+      console.error("Unable to add contact due to: ", err.message)
     });
   }
 

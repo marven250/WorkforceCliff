@@ -1,22 +1,15 @@
 import './ContactList.css'
 import { useState, useEffect } from "react";
-import { Contact } from "../../models/Contact";
+import { Contact } from "../../../../shared/Contact"
 import { List, ListItem, ListItemText } from "@mui/material";
 
-export default function ContactList() {
-  const BASE_URL = "http://localhost:3001";
 
-  const [contacts, setContacts] = useState([]);
+interface ContactListProps {
+  contacts: Array<Contact>
+}
 
-  useEffect(() => {
-    const loadData = async () => {
-      const response = await fetch(`${BASE_URL}/contacts`);
-      const data = await response.json();
-      setContacts(data);
-    };
-
-    loadData();
-  }, []);
+export default function ContactList({contacts}: ContactListProps) {
+  
 
   return (
     <>

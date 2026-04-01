@@ -1,4 +1,5 @@
 import Handlebars from "handlebars";
+import {Contact} from "../shared/Contact"
 
 const TEMPLATE = `
 <h1>New Customer Added</h1>
@@ -12,13 +13,6 @@ const TEMPLATE = `
 </ul>
 `;
 
-export interface Contact {
-  name: string;
-  email: string;
-  phone: string;
-  state: string;
-  company: string;
-}
 
 const contacts: Array<Contact> = [
   {
