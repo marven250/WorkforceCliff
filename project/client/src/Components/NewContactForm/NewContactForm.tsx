@@ -17,6 +17,16 @@ export default function NewContactForm({setContacts, contacts}: NewContactFormPr
   const [state, setState] = useState("");
   const [company, setCompany] = useState("");
 
+
+
+  function clearAllStates(){
+    setName("");
+    setEmail("")
+    setPhone("")
+    setState("")
+    setCompany("")
+  }
+
   async function saveContactData(contact: Contact) {
     await fetch(`${BASE_URL}/contacts`, {
       method: "post",
@@ -26,6 +36,7 @@ export default function NewContactForm({setContacts, contacts}: NewContactFormPr
       body: JSON.stringify(contact),
     }).then(()=>{
       setContacts([...contacts, contact])
+      clearAllStates()
     }).catch(err=>{
       console.error("Unable to add contact due to: ", err.message)
     });
