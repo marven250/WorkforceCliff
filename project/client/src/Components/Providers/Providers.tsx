@@ -26,7 +26,8 @@ export default function Providers() {
           <>
             <ListItem key={provider.id}>
               <ListItemText primary={provider.name} />
-              <Link component={RouterLink} to="/eligibility">Check Eligibility</Link>
+              {provider.is_elligible? <Link component={RouterLink} to="/providerPortal" state={{ provider: provider }}>Go to provider portal</Link>: "Inelligible"}
+              
             </ListItem>
           </>
         ))}

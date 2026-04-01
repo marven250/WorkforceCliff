@@ -11,6 +11,7 @@ import ErrorPage from './Components/Error/Error.tsx';
 import Providers from './Components/Providers/Providers.tsx';
 import Contacts from './Components/Contacts/Contacts.tsx';
 import CheckEligibilityForm from './Components/Eligibility/Eligibility.tsx';
+import ProviderPortal from './Components/ProviderPortal/ProviderPortal.tsx';
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "/providers",
         element: <Providers />
+      },
+      {
+        path: "/providerPortal",
+        element: <ProviderPortal />
       },
       {
         path: "/eligibility",

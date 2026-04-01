@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Contact } from "./Contact";
+import { Contact } from "../../models/Contact";
 import { Button, TextField } from "@mui/material";
 import "./NewContactForm.css";
 

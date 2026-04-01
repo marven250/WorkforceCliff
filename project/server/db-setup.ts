@@ -5,10 +5,10 @@ import fs from 'fs';
 import path from 'path';
 
 const migrations: string[] = [
-    'CREATE TABLE provider (id int, name varchar(255), PRIMARY KEY (id));',
-    'INSERT INTO provider (id, name) VALUES (1, "Strayer University");',
-    'INSERT INTO provider (id, name) VALUES (2, "Capella University");',
-    'INSERT INTO provider (id, name) VALUES (3, "Torrens University Australia");'
+    'CREATE TABLE provider (id int, name varchar(255), is_elligible BOOLEAN NOT NULL DEFAULT 0, PRIMARY KEY (id));',
+    'INSERT INTO provider (id, name, is_elligible) VALUES (1, "Strayer University", true);',
+    'INSERT INTO provider (id, name, is_elligible) VALUES (2, "Capella University", true);',
+    'INSERT INTO provider (id, name, is_elligible) VALUES (3, "Torrens University Australia", false);'
 ];
 
 export const runDBMigrations = async (db: Database): Promise<Boolean> => {
