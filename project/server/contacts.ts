@@ -6,22 +6,34 @@ const TEMPLATE = `
 <ul>
   <li>Name: {{name}}</li>
   <li>Email: {{email}}</li>
+  <li>Phone: {{phone}}</li>
+  <li>State: {{state}}</li>
+  <li>Company: {{company}}</li>
 </ul>
 `;
 
 export interface Contact {
   name: string;
   email: string;
+  phone: string;
+  state: string;
+  company: string;
 }
 
 const contacts: Array<Contact> = [
   {
     name: "Alice",
-    email: "alice@example.com"
+    email: "alice@example.com",
+    phone: "N/A",
+    state: "N/A",
+    company: "N/A"
   },
   {
     name: "Bob",
-    email: "bob@example.com"
+    email: "bob@example.com",
+    phone: "N/A",
+    state: "N/A",
+    company: "N/A"
   },
 ];
 

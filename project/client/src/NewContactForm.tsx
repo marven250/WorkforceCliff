@@ -8,9 +8,12 @@ export default function NewContactForm() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [state, setState] = useState("");
+  const [company, setCompany] = useState("");
 
   async function saveContactData(contact: Contact) {
-    const response = await fetch(`${BASE_URL}/contacts`, {
+    await fetch(`${BASE_URL}/contacts`, {
       method: "post",
       headers: {
         "Content-Type": "application/json",
@@ -29,6 +32,9 @@ export default function NewContactForm() {
         const contact: Contact = {
           name: name,
           email: email,
+          phone: phone,
+          state: state,
+          company: company
         };
         await saveContactData(contact);
       }}>
@@ -40,6 +46,24 @@ export default function NewContactForm() {
         <section>
           <TextField variant="filled" id="email-text-field" name="email" label="Email" value={email} onChange={(evt) => {
             setEmail(evt.target.value);
+
+          }} />
+        </section>
+        <section>
+          <TextField variant="filled" id="phone-text-field" name="phone" label="Phone" value={phone} onChange={(evt) => {
+            setPhone(evt.target.value);
+
+          }} />
+        </section>
+        <section>
+          <TextField variant="filled" id="state-text-field" name="state" label="State" value={state} onChange={(evt) => {
+            setState(evt.target.value);
+
+          }} />
+        </section>
+        <section>
+          <TextField variant="filled" id="company-text-field" name="company" label="Company" value={company} onChange={(evt) => {
+            setCompany(evt.target.value);
 
           }} />
         </section>
