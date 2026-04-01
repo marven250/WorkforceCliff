@@ -1,6 +1,7 @@
+import './Contact.css'
 import { Typography } from "@mui/material";
-import ContactList from "./ContactList";
-import NewContactForm from "./NewContactForm";
+import ContactList from "../ContactList/ContactList";
+import NewContactForm from "../NewContactForm/NewContactForm";
 
 export default function Contacts() {
   return (

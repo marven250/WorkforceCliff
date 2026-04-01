@@ -1,3 +1,5 @@
+import './Eligibility.css'
+
 export default function CheckEligibilityForm() {
   return (
     <>

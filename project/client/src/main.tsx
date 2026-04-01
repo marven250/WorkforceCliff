@@ -5,12 +5,12 @@ import '@fontsource/roboto/700.css';
 import React from 'react'
 import CssBaseline from '@mui/material/CssBaseline';
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import App from './Components/App/App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ErrorPage from './Error.tsx';
-import Providers from './Providers.tsx';
-import Contacts from './Contacts.tsx';
-import CheckEligibilityForm from './Eligibility.tsx';
+import ErrorPage from './Components/Error/Error.tsx';
+import Providers from './Components/Providers/Providers.tsx';
+import Contacts from './Components/Contacts/Contacts.tsx';
+import CheckEligibilityForm from './Components/Eligibility/Eligibility.tsx';
 
 const router = createBrowserRouter([
   {

@@ -1,5 +1,6 @@
+import './ContactList.css'
 import { useState, useEffect } from "react";
-import { Contact } from "./Contact";
+import { Contact } from "../../models/Contact";
 import { List, ListItem, ListItemText } from "@mui/material";
 
 export default function ContactList() {
