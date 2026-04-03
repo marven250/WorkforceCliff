@@ -3,12 +3,13 @@ import { Typography } from "@mui/material";
 import ContactList from "../ContactList/ContactList";
 import NewContactForm from "../NewContactForm/NewContactForm";
 import { useState, useEffect } from 'react';
+import { Contact } from '../../../../shared/Contact';
 
 export default function Contacts() {
 
   const BASE_URL = "http://localhost:3001";
 
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState<Array<Contact>>([]);
 
   useEffect(() => {
     const loadData = async () => {

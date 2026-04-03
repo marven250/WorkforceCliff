@@ -2,7 +2,7 @@ import './Providers.css'
 import { Link, List, ListItem, ListItemText } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Provider } from "../../models/Provider";
+import { Provider } from "../../../../shared/Provider.ts";
 
 export default function Providers() {
   const BASE_URL = "http://localhost:3001";

@@ -1,6 +1,5 @@
-import './ContactList.css'
-import { useState, useEffect } from "react";
-import { Contact } from "../../../../shared/Contact"
+import './ContactList.css';
+import { Contact } from "../../../../shared/Contact";
 import { List, ListItem, ListItemText } from "@mui/material";
 
 
