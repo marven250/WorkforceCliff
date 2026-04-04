@@ -1,4 +1,4 @@
-import './Providers.css'
+import "./Providers.css";
 import { Link, List, ListItem, ListItemText } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -7,7 +7,7 @@ import { Provider } from "../../../../shared/Provider.ts";
 export default function Providers() {
   const BASE_URL = "http://localhost:3001";
 
-  const [providers, setProviders] = useState([]);
+  const [providers, setProviders] = useState<Array<Provider>>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,8 +26,17 @@ export default function Providers() {
           <>
             <ListItem key={provider.id}>
               <ListItemText primary={provider.name} />
-              {provider.is_elligible? <Link component={RouterLink} to="/providerPortal" state={{ provider: provider }}>Go to provider portal</Link>: "Inelligible"}
-              
+              {provider.is_elligible ? (
+                <Link
+                  component={RouterLink}
+                  to="/providerPortal"
+                  state={{ provider: provider }}
+                >
+                  Go to provider portal
+                </Link>
+              ) : (
+                "Inelligible"
+              )}
             </ListItem>
           </>
         ))}
@@ -35,4 +44,3 @@ export default function Providers() {
     </>
   );
 }
-

@@ -1,8 +1,14 @@
 main {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  place-items: center
 }
 
 .page-header {
   text-decoration: underline;
+}
+
+#header {
+  display: flex;
+  justify-content: space-between;
 }

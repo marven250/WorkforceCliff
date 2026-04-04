@@ -2,13 +2,16 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import { getAllContacts, addNewContact } from "./contacts";
 import { getAllProviders } from "./providers";
-import { db } from './db-setup';
+import { db } from "./db-setup";
+import { limiter } from "./middleware/rateLimiter";
 
 const app: Express = express();
 const port = 3001;
 
 app.use(express.json());
 app.use(cors());
+// Apply to all requests
+app.use(limiter);
 
 app.get("/contacts", (req: Request, res: Response) => {
   const contacts = getAllContacts();
@@ -27,7 +30,7 @@ app.get("/providers", async (req: Request, res: Response) => {
   res.json(providers);
 });
 
-process.on('exit', async () => {
+process.on("exit", async () => {
   await db.close();
 });
 

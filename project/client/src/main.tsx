@@ -1,17 +1,17 @@
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-import React from 'react'
-import CssBaseline from '@mui/material/CssBaseline';
-import ReactDOM from 'react-dom/client'
-import App from './Components/App/App.tsx'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ErrorPage from './Components/Error/Error.tsx';
-import Providers from './Components/Providers/Providers.tsx';
-import Contacts from './Components/Contacts/Contacts.tsx';
-import CheckEligibilityForm from './Components/Eligibility/Eligibility.tsx';
-import ProviderPortal from './Components/ProviderPortal/ProviderPortal.tsx';
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import React from "react";
+import CssBaseline from "@mui/material/CssBaseline";
+import ReactDOM from "react-dom/client";
+import App from "./Components/App/App.tsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ErrorPage from "./Components/Error/Error.tsx";
+import Providers from "./Components/Providers/Providers.tsx";
+import Contacts from "./Components/Contacts/Contacts.tsx";
+import CheckEligibilityForm from "./Components/Eligibility/Eligibility.tsx";
+import ProviderPortal from "./Components/ProviderPortal/ProviderPortal.tsx";
 
 const router = createBrowserRouter([
   {
@@ -21,31 +21,31 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Contacts />
+        element: <Contacts />,
       },
       {
         path: "/contacts",
-        element: <Contacts />
+        element: <Contacts />,
       },
       {
         path: "/providers",
-        element: <Providers />
+        element: <Providers />,
       },
       {
         path: "/providerPortal",
-        element: <ProviderPortal />
+        element: <ProviderPortal />,
       },
       {
         path: "/eligibility",
-        element: <CheckEligibilityForm />
-      }
-    ]
+        element: <CheckEligibilityForm />,
+      },
+    ],
   },
-])
+]);
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <CssBaseline />
     <RouterProvider router={router} />
   </React.StrictMode>,
-)
+);

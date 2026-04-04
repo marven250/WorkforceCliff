@@ -1,15 +1,12 @@
-import './ContactList.css';
+import "./ContactList.css";
 import { Contact } from "../../../../shared/Contact";
 import { List, ListItem, ListItemText } from "@mui/material";
 
-
 interface ContactListProps {
-  contacts: Array<Contact>
+  contacts: Array<Contact>;
 }
 
-export default function ContactList({contacts}: ContactListProps) {
-  
-
+export default function ContactList({ contacts }: ContactListProps) {
   return (
     <>
       <List>
@@ -20,8 +17,7 @@ export default function ContactList({contacts}: ContactListProps) {
             </ListItem>
           </>
         ))}
-      </List >
+      </List>
     </>
   );
 }
-

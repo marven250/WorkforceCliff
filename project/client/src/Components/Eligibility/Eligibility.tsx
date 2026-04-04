@@ -1,4 +1,6 @@
-import './Eligibility.css'
+import "./Eligibility.css";
+
+//This component is deprecated
 
 export default function CheckEligibilityForm() {
   return (

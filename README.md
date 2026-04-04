@@ -46,7 +46,7 @@ But make sure you add documentation on the assumptions you made, feel free to ad
 ### Project Questions/Assumptions
 
 - What does being elligible actually mean? Is it based on university location and user location?
-- Is elligibility based on a user being added to a certain 'group' decided by their employer. If this is the case, a 'group' field of type string can be added to the user model, and a field of type string[] can be added to the provider model. The logic to determine elligibility would check if the 'group' string contained by the currently logged in user exists in the provider string[]. If it exists, then they're elligible. 
+- Is elligibility based on a user being added to a certain 'group' decided by their employer. If this is the case, a 'group' field of type string can be added to the user model, and a field 'groups' of type string[] can be added to the provider model. The logic to determine elligibility would check if the 'group' string contained by the currently logged in user exists in the provider string[]. If it exists, then they're elligible. 
 
 - Currently for my solution, I have hard coded boolean values for whether a user is 'elligible' for a particular provider. If they're elligible, they get redirected directly to the provider's portal, else they get some feedback that lets them know that they're inelligible.
 

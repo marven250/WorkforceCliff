@@ -1,7 +1,7 @@
 import Handlebars from "handlebars";
-import {Contact} from "../shared/Contact"
+import { Contact } from "../shared/Contact";
 
-const TEMPLATE = `
+const TEMPLATE: string = `
 <h1>New Customer Added</h1>
 <p>A new customer has registered for the app with the following contact information:</p>
 <ul>
@@ -13,21 +13,20 @@ const TEMPLATE = `
 </ul>
 `;
 
-
 const contacts: Array<Contact> = [
   {
     name: "Alice",
     email: "alice@example.com",
     phone: "N/A",
     state: "N/A",
-    company: "N/A"
+    company: "N/A",
   },
   {
     name: "Bob",
     email: "bob@example.com",
     phone: "N/A",
     state: "N/A",
-    company: "N/A"
+    company: "N/A",
   },
 ];
 
@@ -51,4 +50,3 @@ function sendMail(message: string) {
   // NOTE: pretend that this function actually sends an email to marketing
   console.info(`Sending Email to Marketing:\n${message}`);
 }
-
