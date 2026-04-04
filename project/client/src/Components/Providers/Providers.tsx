@@ -10,13 +10,11 @@ export default function Providers() {
 
   useEffect(() => {
     const loadData = async () => {
-
       //This represents the id of the currently logged in user
-      const userId = '1'
+      const userId = "1";
       const providerData = await fetchProviders(userId);
 
-      console.log("this is provider data", providerData)
-      
+      console.log("this is provider data", providerData);
 
       setProviders(providerData);
     };
@@ -29,20 +27,18 @@ export default function Providers() {
       <List>
         {providers.map((provider: Provider) => (
           <>
-          {provider.status != null? <ListItem key={provider.id}>
-              <ListItemText primary={provider.name} />
-              {provider.status == "eligible" ? (
-                <Link
-                  component={RouterLink}
-                  to={provider.redirect_url}
-                >
-                  Go to provider portal
-                </Link>
-              ) : provider.status
-                
-              }
-            </ListItem>: null}
-            
+            {provider.status != null ? (
+              <ListItem key={provider.id}>
+                <ListItemText primary={provider.name} />
+                {provider.status == "eligible" ? (
+                  <Link component={RouterLink} to={provider.redirect_url}>
+                    Go to provider portal
+                  </Link>
+                ) : (
+                  provider.status
+                )}
+              </ListItem>
+            ) : null}
           </>
         ))}
       </List>

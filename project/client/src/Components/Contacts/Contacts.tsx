@@ -7,8 +7,6 @@ import { Contact } from "../../../../shared/Contact";
 import { fetchContacts } from "../../services/api";
 
 export default function Contacts() {
-  
-
   const [contacts, setContacts] = useState<Array<Contact>>([]);
 
   useEffect(() => {

@@ -9,7 +9,7 @@ export async function fetchContacts(): Promise<Array<Contact>> {
   return contactsData;
 }
 
-export async function fetchProviders(userId:string): Promise<Array<Provider>> {
+export async function fetchProviders(userId: string): Promise<Array<Provider>> {
   const response = await fetch(`${BASE_URL}/providers/${userId}`);
   const providersData = await response.json();
   return providersData;

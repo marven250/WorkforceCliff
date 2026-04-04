@@ -4,7 +4,7 @@ export interface Provider {
   integration_type: string;
   is_enabled: boolean;
   redirect_url: string;
-  status: string
+  status: string;
 }
 
 export interface User {

@@ -26,7 +26,7 @@ app.post("/contacts", (req: Request, res: Response) => {
 });
 
 app.get("/providers/:userId", async (req: Request, res: Response) => {
-  const {userId} = req.params;
+  const { userId } = req.params;
   const providers = await getAllProviders(userId);
   res.json(providers);
 });

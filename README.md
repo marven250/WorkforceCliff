@@ -45,9 +45,13 @@ But make sure you add documentation on the assumptions you made, feel free to ad
 
 ### Project Questions/Assumptions
 
-- What does being elligible actually mean? Is it based on university location and user location?
-- Is elligibility based on a user being added to a certain 'group' decided by their employer. If this is the case, a 'group' field of type string can be added to the user model, and a field 'groups' of type string[] can be added to the provider model. The logic to determine elligibility would check if the 'group' string contained by the currently logged in user exists in the provider string[]. If it exists, then they're elligible. 
+- How to define eligibility
 
-- Currently for my solution, I have hard coded boolean values for whether a user is 'elligible' for a particular provider. If they're elligible, they get redirected directly to the provider's portal, else they get some feedback that lets them know that they're inelligible.
+I architected the backend around 4 tables: users, providers, provider_integrations, and eligibility_submissions.
 
-- I have successfully met the requirements for this assessment I believe, but there's still a ton more work that can be done to further improve the app and handle different edge cases, such as making sure that the user can only input valid data. UX/UI experience can be improved in many ways, maybe providing a drop down list of all usa states as opposed to an open text box, etc. 
+The Provider-integrations table is essentially an extension of the providers table that houses all of the different integrations that the provider wants to support. There is one to many relationship between the providers table and the provider-integrations table
+
+The eligibility_submissions table is where the key table in the architecture that will house the logic for determining a user's eligibility
+The eligibity_submissions table is a middle table between the users and providers tables, creating a many to many relationship between them
+
+Currently the user of id 1 is hard coded to be the currently logged in user. Authentication/authorization can be implemented at a later time

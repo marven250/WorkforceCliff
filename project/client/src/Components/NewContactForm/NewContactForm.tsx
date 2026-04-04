@@ -7,7 +7,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Stack
+  Stack,
 } from "@mui/material";
 import { validatePhoneNumberLength } from "libphonenumber-js";
 import { formatPhoneNumber } from "../../utils/utils";
@@ -29,7 +29,6 @@ export default function NewContactForm({
   setContacts,
   contacts,
 }: NewContactFormProps) {
-  
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const nameRegex = /^[a-z ,.'-]+$/i;
   const phoneRegex = /^\d+$/;
@@ -58,15 +57,14 @@ export default function NewContactForm({
     setPhoneError(false);
     setStateError(false);
     setCompanyError(false);
-    
   }
 
   async function saveContactData(contact: Contact) {
-    
-      createContact(contact).then(() => {
+    createContact(contact)
+      .then(() => {
         setContacts([...contacts, contact]);
         clearForm();
-        alert("You've successfully added a contact!")
+        alert("You've successfully added a contact!");
       })
       .catch((err) => {
         console.error("Unable to add contact due to: ", err.message);
@@ -75,12 +73,12 @@ export default function NewContactForm({
 
   return (
     <>
-      <form 
+      <form
         onSubmit={async (event) => {
           event.preventDefault();
 
-          if(name.length < 3 || !nameRegex.test(name)){
-            setNameError(true)
+          if (name.length < 3 || !nameRegex.test(name)) {
+            setNameError(true);
           }
 
           if (email.length < 8 || !emailRegex.test(email)) {
@@ -93,32 +91,27 @@ export default function NewContactForm({
             return;
           }
 
-          if(!state){
-            setStateError(true)
-            return
+          if (!state) {
+            setStateError(true);
+            return;
           }
 
-          if(company.length < 3){
+          if (company.length < 3) {
             setCompanyError(true);
             return;
           }
 
-          
+          const contact: Contact = {
+            name: name,
+            email: email,
+            phone: formatPhoneNumber(phone) || phone,
+            state: state,
+            company: company,
+          };
 
-          
+          clearErrors();
 
-            const contact: Contact = {
-              name: name,
-              email: email,
-              phone: formatPhoneNumber(phone) || phone,
-              state: state,
-              company: company,
-            };
-
-            clearErrors();
-
-            await saveContactData(contact);
-
+          await saveContactData(contact);
         }}
       >
         <section>
@@ -164,23 +157,26 @@ export default function NewContactForm({
           />
         </section>
         <section>
-        <FormControl error={stateError} sx={{ width: { xs: "100%", md: "77%" } }}>
-          <InputLabel id="state-select-label">State</InputLabel>
-          <Select
-            labelId="state-select-label"
-            variant="filled"
-            id="state-select"
-            value={state}
-            label="State"
-            onChange={(evt) => setState(evt.target.value)}
+          <FormControl
+            error={stateError}
+            sx={{ width: { xs: "100%", md: "77%" } }}
           >
-            {usStates.map((option: state) => (
-              <MenuItem key={option.code} value={option.code}>
-                {option.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            <InputLabel id="state-select-label">State</InputLabel>
+            <Select
+              labelId="state-select-label"
+              variant="filled"
+              id="state-select"
+              value={state}
+              label="State"
+              onChange={(evt) => setState(evt.target.value)}
+            >
+              {usStates.map((option: state) => (
+                <MenuItem key={option.code} value={option.code}>
+                  {option.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </section>
         <section>
           <TextField
@@ -197,9 +193,9 @@ export default function NewContactForm({
           />
         </section>
         <Stack alignItems="center" mr={6}>
-        <Button variant="contained" type="submit">
-          Add Contact
-        </Button>
+          <Button variant="contained" type="submit">
+            Add Contact
+          </Button>
         </Stack>
       </form>
     </>
