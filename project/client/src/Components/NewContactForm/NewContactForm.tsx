@@ -73,7 +73,7 @@ export default function NewContactForm({
 
   return (
     <>
-      <form
+      <FormControl sx={{ ml: 4 }}
         onSubmit={async (event) => {
           event.preventDefault();
 
@@ -83,21 +83,25 @@ export default function NewContactForm({
           }
 
           if (email.length < 8 || !emailRegex.test(email)) {
+            setNameError(false);
             setEmailError(true);
             return;
           }
 
           if (!validatePhoneNumberLength(phone) || !phoneRegex.test(phone)) {
+            setEmailError(false);
             setPhoneError(true);
             return;
           }
 
           if (!state) {
+            setPhoneError(false);
             setStateError(true);
             return;
           }
 
           if (company.length < 3) {
+            setStateError(false);
             setCompanyError(true);
             return;
           }
@@ -160,7 +164,7 @@ export default function NewContactForm({
         <section>
           <FormControl
             error={stateError}
-            sx={{ width: { xs: "100%", md: "77%" } }}
+            sx={{ width: { xs: "100%" } }}
           >
             <InputLabel id="state-select-label">State</InputLabel>
             <Select
@@ -193,12 +197,12 @@ export default function NewContactForm({
             }}
           />
         </section>
-        <Stack alignItems="center" mr={6}>
+        <Stack alignItems="center">
           <Button variant="contained" type="submit">
             Add Contact
           </Button>
         </Stack>
-      </form>
+      </FormControl>
     </>
   );
 }

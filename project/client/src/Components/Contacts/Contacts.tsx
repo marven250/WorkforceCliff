@@ -28,7 +28,7 @@ export default function Contacts() {
           <ContactList contacts={contacts} />
         </section>
         <section>
-          <Typography className="page-header" variant="h4" component="h2">
+          <Typography sx={{ mt: 16 }} className="page-header" variant="h4" component="h2">
             New Contact Form
           </Typography>
           <NewContactForm contacts={contacts} setContacts={setContacts} />

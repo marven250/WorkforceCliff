@@ -25,9 +25,8 @@ export default function Providers() {
   return (
     <>
       <List>
-        {providers.map((provider: Provider) => (
-          <>
-            {provider.status != null ? (
+        {providers.map((provider: Provider) => (     
+            provider.status != null ? (
               <ListItem key={provider.id}>
                 <ListItemText primary={provider.name} />
                 {provider.status == "eligible" ? (
@@ -38,8 +37,7 @@ export default function Providers() {
                   provider.status
                 )}
               </ListItem>
-            ) : null}
-          </>
+            ) : null
         ))}
       </List>
     </>
