@@ -7,11 +7,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Stack
 } from "@mui/material";
 import { validatePhoneNumberLength } from "libphonenumber-js";
 import { formatPhoneNumber } from "../../utils/utils";
 import { usStates } from "../../constants/states";
 import "./NewContactForm.css";
+import { createContact } from "../../services/api";
 
 interface NewContactFormProps {
   setContacts: (contacts: Array<Contact>) => void;
@@ -27,16 +29,20 @@ export default function NewContactForm({
   setContacts,
   contacts,
 }: NewContactFormProps) {
-  const BASE_URL = "http://localhost:3001";
+  
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const nameRegex = /^[a-z ,.'-]+$/i;
   const phoneRegex = /^\d+$/;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
   const [state, setState] = useState("");
   const [company, setCompany] = useState("");
+  const [nameError, setNameError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+  const [stateError, setStateError] = useState(false);
+  const [companyError, setCompanyError] = useState(false);
 
   function clearForm() {
     setName("");
@@ -47,21 +53,20 @@ export default function NewContactForm({
   }
 
   function clearErrors() {
-    setPhoneError(false);
+    setNameError(false);
     setEmailError(false);
+    setPhoneError(false);
+    setStateError(false);
+    setCompanyError(false);
+    
   }
 
   async function saveContactData(contact: Contact) {
-    await fetch(`${BASE_URL}/contacts`, {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(contact),
-    })
-      .then(() => {
+    
+      createContact(contact).then(() => {
         setContacts([...contacts, contact]);
         clearForm();
+        alert("You've successfully added a contact!")
       })
       .catch((err) => {
         console.error("Unable to add contact due to: ", err.message);
@@ -70,21 +75,38 @@ export default function NewContactForm({
 
   return (
     <>
-      <form
+      <form 
         onSubmit={async (event) => {
           event.preventDefault();
+
+          if(name.length < 3 || !nameRegex.test(name)){
+            setNameError(true)
+          }
+
+          if (email.length < 8 || !emailRegex.test(email)) {
+            setEmailError(true);
+            return;
+          }
 
           if (!validatePhoneNumberLength(phone) || !phoneRegex.test(phone)) {
             setPhoneError(true);
             return;
           }
 
-          if (!emailRegex.test(email)) {
-            setEmailError(true);
+          if(!state){
+            setStateError(true)
+            return
+          }
+
+          if(company.length < 3){
+            setCompanyError(true);
             return;
           }
 
-          if (name && state && company) {
+          
+
+          
+
             const contact: Contact = {
               name: name,
               email: email,
@@ -96,9 +118,7 @@ export default function NewContactForm({
             clearErrors();
 
             await saveContactData(contact);
-          } else {
-            alert("All fields are required to successfully submit the form");
-          }
+
         }}
       >
         <section>
@@ -106,6 +126,8 @@ export default function NewContactForm({
             variant="filled"
             id="name-text-field"
             name="name"
+            error={nameError}
+            helperText={nameError ? "Invalid format" : ""}
             label="Name"
             value={name}
             onChange={(evt) => {
@@ -141,10 +163,12 @@ export default function NewContactForm({
             }}
           />
         </section>
-        <FormControl sx={{ width: { xs: "100%", md: "40%" } }}>
+        <section>
+        <FormControl error={stateError} sx={{ width: { xs: "100%", md: "77%" } }}>
           <InputLabel id="state-select-label">State</InputLabel>
           <Select
             labelId="state-select-label"
+            variant="filled"
             id="state-select"
             value={state}
             label="State"
@@ -157,6 +181,7 @@ export default function NewContactForm({
             ))}
           </Select>
         </FormControl>
+        </section>
         <section>
           <TextField
             variant="filled"
@@ -164,14 +189,18 @@ export default function NewContactForm({
             name="company"
             label="Company"
             value={company}
+            error={companyError}
+            helperText={companyError ? "Invalid format" : ""}
             onChange={(evt) => {
               setCompany(evt.target.value);
             }}
           />
         </section>
+        <Stack alignItems="center" mr={6}>
         <Button variant="contained" type="submit">
           Add Contact
         </Button>
+        </Stack>
       </form>
     </>
   );

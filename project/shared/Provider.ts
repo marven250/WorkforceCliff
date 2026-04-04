@@ -1,5 +1,12 @@
 export interface Provider {
   id: number;
   name: string;
-  is_elligible: boolean;
 }
+
+
+export interface User {
+  id: number;
+  name: string;
+}
+
+

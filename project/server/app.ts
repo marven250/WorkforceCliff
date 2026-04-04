@@ -10,7 +10,7 @@ const port = 3001;
 
 app.use(express.json());
 app.use(cors());
-// Apply to all requests
+// Apply rate limiter
 app.use(limiter);
 
 app.get("/contacts", (req: Request, res: Response) => {

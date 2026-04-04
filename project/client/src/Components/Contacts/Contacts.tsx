@@ -4,16 +4,16 @@ import ContactList from "../ContactList/ContactList";
 import NewContactForm from "../NewContactForm/NewContactForm";
 import { useState, useEffect } from "react";
 import { Contact } from "../../../../shared/Contact";
+import { fetchContacts } from "../../services/api";
 
 export default function Contacts() {
-  const BASE_URL = "http://localhost:3001";
+  
 
   const [contacts, setContacts] = useState<Array<Contact>>([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const response = await fetch(`${BASE_URL}/contacts`);
-      const data = await response.json();
+      const data = await fetchContacts();
       setContacts(data);
     };
 

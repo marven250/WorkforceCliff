@@ -12,7 +12,7 @@ export default function ContactList({ contacts }: ContactListProps) {
       <List>
         {contacts.map((contact: Contact) => (
           <>
-            <ListItem key={contact.email}>
+            <ListItem sx={{ textAlign: 'center' }} key={contact.email}>
               <ListItemText primary={contact.name} />
             </ListItem>
           </>
