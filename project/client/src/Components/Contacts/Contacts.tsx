@@ -13,8 +13,8 @@ export default function Contacts() {
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchContacts();
-      setContacts(data);
+      const contactsData = await fetchContacts();
+      setContacts(contactsData);
     };
 
     loadData();

@@ -23,6 +23,8 @@ const migrations: string[] = [
   'INSERT INTO eligibility_submissions (id, user_id, provider_id, status) VALUES (1, 1, 1, "pending");',
   'INSERT INTO eligibility_submissions (id, user_id, provider_id, status) VALUES (2, 2, 2, "eligible");',
   'INSERT INTO eligibility_submissions (id, user_id, provider_id, status) VALUES (3, 3, 3, "ineligible");',
+  'INSERT INTO eligibility_submissions (id, user_id, provider_id, status) VALUES (4, 1, 3, "eligible");',
+  'INSERT INTO eligibility_submissions (id, user_id, provider_id, status) VALUES (5, 1, 2, "ineligible");',
 ];
 
 export const runDBMigrations = async (db: Database): Promise<Boolean> => {

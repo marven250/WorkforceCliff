@@ -6,15 +6,19 @@ import { Provider } from "../../../../shared/Provider.ts";
 import { fetchProviders } from "../../services/api.ts";
 
 export default function Providers() {
-  
-
   const [providers, setProviders] = useState<Array<Provider>>([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchProviders();
 
-      setProviders(data);
+      //This represents the id of the currently logged in user
+      const userId = '1'
+      const providerData = await fetchProviders(userId);
+
+      console.log("this is provider data", providerData)
+      
+
+      setProviders(providerData);
     };
 
     loadData();
@@ -25,20 +29,20 @@ export default function Providers() {
       <List>
         {providers.map((provider: Provider) => (
           <>
-            <ListItem key={provider.id}>
+          {provider.status != null? <ListItem key={provider.id}>
               <ListItemText primary={provider.name} />
-              {provider.is_elligible ? (
+              {provider.status == "eligible" ? (
                 <Link
                   component={RouterLink}
-                  to="/providerPortal"
-                  state={{ provider: provider }}
+                  to={provider.redirect_url}
                 >
                   Go to provider portal
                 </Link>
-              ) : (
-                "Inelligible"
-              )}
-            </ListItem>
+              ) : provider.status
+                
+              }
+            </ListItem>: null}
+            
           </>
         ))}
       </List>
