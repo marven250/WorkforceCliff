@@ -79,6 +79,7 @@ export default function NewContactForm({
 
           if (name.length < 3 || !nameRegex.test(name)) {
             setNameError(true);
+            return;
           }
 
           if (email.length < 8 || !emailRegex.test(email)) {
