@@ -18,7 +18,7 @@ export default function App() {
               <NavLink
                 className="nav-link"
                 style={({ isActive }) => ({
-                  color: isActive ? "blue" : "white",
+                  color: isActive ? "#E1BF50" : "white",
                 })}
                 to="/contacts"
                 color="inherit"
@@ -28,7 +28,7 @@ export default function App() {
               <NavLink
                 className="nav-link"
                 style={({ isActive }) => ({
-                  color: isActive ? "blue" : "white",
+                  color: isActive ? "#E1BF50" : "white",
                 })}
                 to="/providers"
                 color="inherit"
