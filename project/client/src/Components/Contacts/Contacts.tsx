@@ -1,10 +1,10 @@
 import "./Contact.css";
-import { Typography } from "@mui/material";
-import ContactList from "../ContactList/ContactList";
-import NewContactForm from "../NewContactForm/NewContactForm";
+import { Box, Grid } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Contact } from "../../../../shared/Contact";
 import { fetchContacts } from "../../services/api";
+import ContactList from "../ContactList/ContactList";
+import NewContactForm from "../NewContactForm/NewContactForm";
 
 export default function Contacts() {
   const [contacts, setContacts] = useState<Array<Contact>>([]);
@@ -21,18 +21,13 @@ export default function Contacts() {
   return (
     <>
       <main>
-        <section>
-          <Typography className="page-header" variant="h4" component="h2">
-            All Contacts
-          </Typography>
-          <ContactList contacts={contacts} />
-        </section>
-        <section>
-          <Typography sx={{ mt: 16 }} className="page-header" variant="h4" component="h2">
-            New Contact Form
-          </Typography>
-          <NewContactForm contacts={contacts} setContacts={setContacts} />
-        </section>
+        <Box sx={{ flexGrow: 1, p: 4 }}>
+          <Grid container spacing={4} marginTop={6}>
+            <ContactList contacts={contacts} />
+
+            <NewContactForm contacts={contacts} setContacts={setContacts} />
+          </Grid>
+        </Box>
       </main>
     </>
   );

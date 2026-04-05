@@ -1,0 +1,46 @@
+/* Ensure the full height is used */
+body,
+html,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.landing-container {
+  display: flex;
+  justify-content: center; /* Horizontal center */
+  align-items: center; /* Vertical center */
+  height: 100vh; /* Full viewport height */
+  background-color: #f0f2f5;
+}
+
+.nav-box {
+  text-align: center;
+}
+
+.title {
+  font-size: 3rem;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.button-group {
+  display: flex;
+  gap: 2rem; /* Spacing between buttons */
+}
+
+.big-button {
+  padding: 2rem 4rem;
+  font-size: 1.5rem;
+  text-decoration: none;
+  color: white;
+  background-color: #007bff;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.big-button:hover {
+  background-color: #0056b3;
+}

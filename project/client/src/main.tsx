@@ -5,13 +5,12 @@ import "@fontsource/roboto/700.css";
 import React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import ReactDOM from "react-dom/client";
-import App from "./Components/App/App.tsx";
+import App from "./components/App/App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ErrorPage from "./Components/Error/Error.tsx";
-import Providers from "./Components/Providers/Providers.tsx";
-import Contacts from "./Components/Contacts/Contacts.tsx";
-import CheckEligibilityForm from "./Components/Eligibility/Eligibility.tsx";
-import ProviderPortal from "./Components/ProviderPortal/ProviderPortal.tsx";
+import ErrorPage from "./components/Error/Error.tsx";
+import Providers from "./components/Providers/Providers.tsx";
+import Contacts from "./components/Contacts/Contacts.tsx";
+import LandingPage from "./components/LandingPage/LandingPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -21,7 +20,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Contacts />,
+        element: <LandingPage />,
       },
       {
         path: "/contacts",
@@ -30,14 +29,6 @@ const router = createBrowserRouter([
       {
         path: "/providers",
         element: <Providers />,
-      },
-      {
-        path: "/providerPortal",
-        element: <ProviderPortal />,
-      },
-      {
-        path: "/eligibility",
-        element: <CheckEligibilityForm />,
       },
     ],
   },

@@ -1,6 +1,5 @@
 import "./App.css";
-import Link from "@mui/material/Link";
-import { Link as RouterLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { AppBar, Container, Toolbar, Typography } from "@mui/material";
 import { Outlet } from "react-router-dom";
 
@@ -10,36 +9,32 @@ export default function App() {
       <header>
         <AppBar position="static">
           <Toolbar id="header">
-            <Typography variant="h3" component="h1">
-              Test Site
-            </Typography>
+            <NavLink to="/" className="nav-link">
+              <Typography variant="h3" component="h1" color="white">
+                Great Site
+              </Typography>
+            </NavLink>
             <div>
-              <Link
-                sx={{
-                  px: 2,
-                  "&:hover": {
-                    color: "secondary.main",
-                  },
-                }}
-                component={RouterLink}
+              <NavLink
+                className="nav-link"
+                style={({ isActive }) => ({
+                  color: isActive ? "blue" : "white",
+                })}
                 to="/contacts"
                 color="inherit"
               >
                 Contacts
-              </Link>
-              <Link
-                sx={{
-                  px: 2,
-                  "&:hover": {
-                    color: "secondary.main",
-                  },
-                }}
-                component={RouterLink}
+              </NavLink>
+              <NavLink
+                className="nav-link"
+                style={({ isActive }) => ({
+                  color: isActive ? "blue" : "white",
+                })}
                 to="/providers"
                 color="inherit"
               >
                 Providers
-              </Link>
+              </NavLink>
             </div>
           </Toolbar>
         </AppBar>

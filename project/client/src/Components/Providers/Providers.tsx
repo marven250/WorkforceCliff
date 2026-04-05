@@ -14,8 +14,6 @@ export default function Providers() {
       const userId = "1";
       const providerData = await fetchProviders(userId);
 
-      console.log("this is provider data", providerData);
-
       setProviders(providerData);
     };
 
@@ -25,20 +23,20 @@ export default function Providers() {
   return (
     <>
       <List>
-        {providers.map((provider: Provider) => (     
-            provider.status != null ? (
-              <ListItem key={provider.id}>
-                <ListItemText primary={provider.name} />
-                {provider.status == "eligible" ? (
-                  <Link component={RouterLink} to={provider.redirect_url}>
-                    Go to provider portal
-                  </Link>
-                ) : (
-                  provider.status
-                )}
-              </ListItem>
-            ) : null
-        ))}
+        {providers.map((provider: Provider) =>
+          provider.status != null ? (
+            <ListItem key={provider.id}>
+              <ListItemText primary={provider.name} />
+              {provider.status == "eligible" ? (
+                <Link component={RouterLink} to={provider.redirect_url}>
+                  Go to provider portal
+                </Link>
+              ) : (
+                provider.status
+              )}
+            </ListItem>
+          ) : null,
+        )}
       </List>
     </>
   );

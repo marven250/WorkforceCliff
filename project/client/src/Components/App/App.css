@@ -1,7 +1,7 @@
 main {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  place-items: center
+  place-items: center;
 }
 
 .page-header {
@@ -11,4 +11,20 @@ main {
 #header {
   display: flex;
   justify-content: space-between;
+}
+
+.active {
+  color: blue;
+  font-weight: bold;
+}
+
+.nav-link {
+  padding: 10px 20px; /* Adds padding */
+  text-decoration: none;
+  color: black;
+  display: inline-block; /* Essential for padding to work correctly on <a> tags */
+}
+
+.nav-link:hover {
+  color: blue;
 }

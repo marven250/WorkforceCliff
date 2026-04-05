@@ -1,6 +1,8 @@
 import "./ProviderPortal.css";
 import { useLocation } from "react-router-dom";
 
+//This component ius deprecated
+
 function ProviderPortal() {
   const { name } = useLocation().state.provider;
 
