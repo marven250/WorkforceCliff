@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { Box, CircularProgress } from "@mui/material";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import type { AccountRole } from "../../../../shared/Auth";
 import { useAuth } from "../../context/AuthContext";
 
@@ -12,9 +12,11 @@ export default function RequireAuth({
   roles?: AccountRole[];
 }) {
   const { token, user, loading } = useAuth();
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const signInTo = tenantSlug ? `/org/${tenantSlug}/sign-in` : "/sign-in";
 
   if (!token) {
-    return <Navigate to="/sign-in" replace />;
+    return <Navigate to={signInTo} replace />;
   }
 
   if (loading && !user) {
@@ -26,11 +28,12 @@ export default function RequireAuth({
   }
 
   if (!user) {
-    return <Navigate to="/sign-in" replace />;
+    return <Navigate to={signInTo} replace />;
   }
 
   if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    const fallback = tenantSlug ? `/org/${tenantSlug}/dashboard` : "/dashboard";
+    return <Navigate to={fallback} replace />;
   }
 
   return children;

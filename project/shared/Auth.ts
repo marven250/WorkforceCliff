@@ -13,7 +13,10 @@ export interface PublicUser {
   role: AccountRole;
   firstName: string;
   lastName: string;
+  /** For learners who registered via a tenant portal: display name of that employer. */
   organizationName: string | null;
+  /** For learners: URL slug of the employer tenant (`/org/:slug`). Null for other roles or legacy rows. */
+  employerTenantSlug: string | null;
   phone: string | null;
   state: string | null;
 }
@@ -30,6 +33,8 @@ export interface RegisterLearnerBody {
   lastName: string;
   phone: string;
   state: string;
+  /** Required: tenant the learner is signing up under (validated server-side). */
+  employerTenantSlug: string;
 }
 
 export interface LoginBody {

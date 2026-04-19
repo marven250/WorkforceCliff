@@ -9,6 +9,7 @@ export interface AuthAccountRow {
   first_name: string;
   last_name: string;
   organization_name: string | null;
+  employer_tenant_slug: string | null;
   phone: string | null;
   state: string | null;
 }
@@ -21,6 +22,7 @@ function rowToPublic(row: AuthAccountRow): PublicUser {
     firstName: row.first_name,
     lastName: row.last_name,
     organizationName: row.organization_name,
+    employerTenantSlug: row.employer_tenant_slug ?? null,
     phone: row.phone,
     state: row.state,
   };
@@ -28,7 +30,7 @@ function rowToPublic(row: AuthAccountRow): PublicUser {
 
 export async function findAccountByEmail(email: string): Promise<AuthAccountRow | undefined> {
   return db.get<AuthAccountRow>(
-    `SELECT id, email, password_hash, role, first_name, last_name, organization_name, phone, state
+    `SELECT id, email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state
      FROM auth_accounts WHERE lower(email) = lower(?)`,
     email,
   );
@@ -36,7 +38,7 @@ export async function findAccountByEmail(email: string): Promise<AuthAccountRow 
 
 export async function findAccountById(id: number): Promise<PublicUser | null> {
   const row = await db.get<AuthAccountRow>(
-    `SELECT id, email, password_hash, role, first_name, last_name, organization_name, phone, state
+    `SELECT id, email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state
      FROM auth_accounts WHERE id = ?`,
     id,
   );
@@ -50,14 +52,18 @@ export async function createLearnerAccount(params: {
   lastName: string;
   phone: string;
   state: string;
+  employerName: string;
+  employerTenantSlug: string;
 }): Promise<PublicUser> {
   const result = await db.run(
-    `INSERT INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, phone, state)
-     VALUES (?, ?, 'learner', ?, ?, NULL, ?, ?)`,
+    `INSERT INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state)
+     VALUES (?, ?, 'learner', ?, ?, ?, ?, ?, ?)`,
     params.email,
     params.passwordHash,
     params.firstName,
     params.lastName,
+    params.employerName,
+    params.employerTenantSlug,
     params.phone,
     params.state,
   );

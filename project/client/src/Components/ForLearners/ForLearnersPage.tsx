@@ -22,21 +22,14 @@ import {
 import { useMemo, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
-const EMPLOYER_PARTNERS = [
-  "Summit Hospitality Group",
-  "Lakeside Health System",
-  "Ridgeline Health Services",
-  "Granite Ridge Federal Credit Union",
-  "Northwind Logistics",
-  "Harborline Financial",
-];
+import { getStoredTenantSlug } from "../../lib/tenantSession";
+import { filterTenantsByQuery } from "../../../../shared/tenants";
 
 const LEARNER_FAQS: Array<{ question: string; answer: string }> = [
   {
     question: "How do I access the Workforce Cliff platform?",
     answer:
-      "When your employer offers Workforce Cliff, you will typically receive a link to sign up or log in, browse schools and programs where integrations exist, and submit requests or documentation your program requires. Use the employer search above as a demo, or go straight to Log in if you already have credentials.",
+      "When your employer offers Workforce Cliff, you will typically receive a link to sign up or log in, browse schools and programs where integrations exist, and submit requests or documentation your program requires. Use the employer search below to open your organization's portal, or choose Log in to search employers first.",
   },
   {
     question: "My employer doesn't use Workforce Cliff. How can I share information?",
@@ -64,11 +57,8 @@ export default function ForLearnersPage() {
   const { user } = useAuth();
   const [employerQuery, setEmployerQuery] = useState("");
 
-  const filteredEmployers = useMemo(() => {
-    const q = employerQuery.trim().toLowerCase();
-    if (!q) return EMPLOYER_PARTNERS;
-    return EMPLOYER_PARTNERS.filter((name) => name.toLowerCase().includes(q));
-  }, [employerQuery]);
+  const filteredEmployers = useMemo(() => filterTenantsByQuery(employerQuery), [employerQuery]);
+  const tenantSlug = getStoredTenantSlug();
 
   return (
     <Box component="article">
@@ -112,7 +102,7 @@ export default function ForLearnersPage() {
                   <Button component={RouterLink} to="/sign-in" variant="contained" color="secondary" size="small">
                     Log in
                   </Button>
-                  <Button component={RouterLink} to="/sign-up" variant="outlined" size="small">
+                  <Button component={RouterLink} to="/sign-in" variant="outlined" size="small">
                     Create account
                   </Button>
                 </Stack>
@@ -130,12 +120,23 @@ export default function ForLearnersPage() {
                   and track how you use your education benefit.
                 </Typography>
                 {user ? (
-                  <Button component={RouterLink} to="/dashboard" variant="contained" size="small">
+                  <Button
+                    component={RouterLink}
+                    to={tenantSlug ? `/org/${tenantSlug}/dashboard` : "/sign-in"}
+                    variant="contained"
+                    size="small"
+                  >
                     Go to dashboard
                   </Button>
                 ) : null}
                 {user?.role === "learner" ? (
-                  <Button component={RouterLink} to="/providers" variant="text" size="small" sx={{ ml: 1 }}>
+                  <Button
+                    component={RouterLink}
+                    to={tenantSlug ? `/org/${tenantSlug}/providers` : "/sign-in"}
+                    variant="text"
+                    size="small"
+                    sx={{ ml: 1 }}
+                  >
                     Browse providers
                   </Button>
                 ) : null}
@@ -164,8 +165,8 @@ export default function ForLearnersPage() {
             Find your employer and login link
           </Typography>
           <Typography variant="body1" color="text.secondary" paragraph>
-            Type your employer name, pick a result, and you&apos;ll be taken to the sign-in page to
-            continue.
+            Type your employer name, pick a result, and you&apos;ll open that organization&apos;s
+            Workforce Cliff portal to sign in or create an account.
           </Typography>
           <TextField
             fullWidth
@@ -181,26 +182,28 @@ export default function ForLearnersPage() {
               ),
             }}
           />
-          <Paper variant="outlined">
-            <List disablePadding>
-              {filteredEmployers.map((name) => (
-                <ListItemButton key={name} component={RouterLink} to="/sign-in">
-                  <Typography variant="body1">{name}</Typography>
-                </ListItemButton>
-              ))}
-              {filteredEmployers.length === 0 ? (
-                <Box sx={{ p: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    No matches. Try the full legal name of your employer or parent company, or{" "}
-                    <Link component={RouterLink} to="/contact-us" fontWeight={600}>
-                      contact us
-                    </Link>{" "}
-                    for help.
-                  </Typography>
-                </Box>
-              ) : null}
-            </List>
-          </Paper>
+          {employerQuery.trim() ? (
+            <Paper variant="outlined">
+              <List disablePadding>
+                {filteredEmployers.map((t) => (
+                  <ListItemButton key={t.slug} component={RouterLink} to={`/org/${t.slug}`}>
+                    <Typography variant="body1">{t.name}</Typography>
+                  </ListItemButton>
+                ))}
+                {filteredEmployers.length === 0 ? (
+                  <Box sx={{ p: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No matches. Try the full legal name of your employer or parent company, or{" "}
+                      <Link component={RouterLink} to="/contact-us" fontWeight={600}>
+                        contact us
+                      </Link>{" "}
+                      for help.
+                    </Typography>
+                  </Box>
+                ) : null}
+              </List>
+            </Paper>
+          ) : null}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
             Don&apos;t see your organization? Your HR team may issue a direct Workforce Cliff link
             for your company&apos;s program.

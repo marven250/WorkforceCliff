@@ -12,12 +12,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { usStates } from "../../constants/states";
+import { setStoredTenantSlug } from "../../lib/tenantSession";
+import { getTenantBySlug } from "../../../../shared/tenants";
 
 export default function SignUpLearner() {
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const tenant = getTenantBySlug(tenantSlug);
   const { registerLearner, user } = useAuth();
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
@@ -29,8 +33,15 @@ export default function SignUpLearner() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
-  }, [user, navigate]);
+    if (user && tenantSlug) {
+      setStoredTenantSlug(tenantSlug);
+      navigate(`/org/${tenantSlug}/dashboard`, { replace: true });
+    }
+  }, [user, navigate, tenantSlug]);
+
+  if (!tenant || !tenantSlug) {
+    return <Navigate to="/sign-in" replace />;
+  }
 
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
@@ -39,9 +50,9 @@ export default function SignUpLearner() {
           Create your learner account
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          Track education benefits, explore programs, and connect learning to your career goals.
-          Already registered?{" "}
-          <Link component={RouterLink} to="/sign-in">
+          {tenant.name} · Workforce Cliff. Track education benefits, explore programs, and connect
+          learning to your career goals. Already registered?{" "}
+          <Link component={RouterLink} to={`/org/${tenantSlug}/sign-in`}>
             Sign in
           </Link>
           .
@@ -65,8 +76,10 @@ export default function SignUpLearner() {
                 lastName,
                 phone,
                 state,
+                employerTenantSlug: tenantSlug,
               });
-              navigate("/dashboard", { replace: true });
+              setStoredTenantSlug(tenantSlug);
+              navigate(`/org/${tenantSlug}/dashboard`, { replace: true });
             } catch (err) {
               setError(err instanceof Error ? err.message : "Registration failed");
             }

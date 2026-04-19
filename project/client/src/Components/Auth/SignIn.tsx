@@ -8,11 +8,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { setStoredTenantSlug } from "../../lib/tenantSession";
+import { getTenantBySlug } from "../../../../shared/tenants";
 
 export default function SignIn() {
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const tenant = getTenantBySlug(tenantSlug);
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -20,8 +24,15 @@ export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
-  }, [user, navigate]);
+    if (user && tenantSlug) {
+      setStoredTenantSlug(tenantSlug);
+      navigate(`/org/${tenantSlug}/dashboard`, { replace: true });
+    }
+  }, [user, navigate, tenantSlug]);
+
+  if (!tenant || !tenantSlug) {
+    return <Navigate to="/sign-in" replace />;
+  }
 
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
@@ -30,8 +41,8 @@ export default function SignIn() {
           Sign in
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          New to Workforce Cliff? Learners can{" "}
-          <Link component={RouterLink} to="/sign-up">
+          {tenant.name} · Workforce Cliff. New to Workforce Cliff? Learners can{" "}
+          <Link component={RouterLink} to={`/org/${tenantSlug}/sign-up`}>
             create an account
           </Link>
           .
@@ -49,7 +60,8 @@ export default function SignIn() {
             setError(null);
             try {
               await login({ email, password });
-              navigate("/dashboard", { replace: true });
+              setStoredTenantSlug(tenantSlug);
+              navigate(`/org/${tenantSlug}/dashboard`, { replace: true });
             } catch (err) {
               setError(err instanceof Error ? err.message : "Sign-in failed");
             }

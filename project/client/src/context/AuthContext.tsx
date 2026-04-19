@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { AccountRole, AuthResponse, LoginBody, PublicUser, RegisterLearnerBody } from "../../../shared/Auth";
 import { clearStoredToken, getStoredToken, loginRequest, meRequest, registerLearnerRequest, setStoredToken } from "../services/api";
+import { clearStoredTenantSlug } from "../lib/tenantSession";
 
 type AuthContextValue = {
   token: string | null;
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     clearStoredToken();
+    clearStoredTenantSlug();
     setToken(null);
     setUser(null);
   }, []);

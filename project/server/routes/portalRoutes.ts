@@ -11,7 +11,9 @@ router.get("/home", authenticate, (req: Request, res: Response) => {
         role: u.role,
         title: "Your learning hub",
         summary:
-          "Track benefits, explore programs, and connect your coursework to internal mobility opportunities.",
+          u.organizationName != null
+            ? `You're connected to ${u.organizationName}. Track benefits, explore programs, and connect coursework to mobility opportunities.`
+            : "Track benefits, explore programs, and connect your coursework to internal mobility opportunities.",
         nextSteps: [
           "Complete your learner profile (demo)",
           "Browse eligible education providers",

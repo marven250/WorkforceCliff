@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { fetchPortalHome } from "../../services/api";
 
@@ -23,6 +23,8 @@ type PortalPayload = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const providersPath = tenantSlug ? `/org/${tenantSlug}/providers` : "/providers";
   const [data, setData] = useState<PortalPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +50,12 @@ export default function Dashboard() {
       </Typography>
       <Typography variant="body2" color="text.secondary" paragraph>
         Signed in as <strong>{user?.email}</strong> · role <strong>{user?.role}</strong>
+        {user?.role === "learner" && user.organizationName ? (
+          <>
+            {" "}
+            · employer <strong>{user.organizationName}</strong>
+          </>
+        ) : null}
       </Typography>
       {error ? (
         <Typography color="error" paragraph>
@@ -75,7 +83,7 @@ export default function Dashboard() {
             </List>
             {user?.role === "learner" ? (
               <Box sx={{ mt: 2 }}>
-                <Button component={RouterLink} to="/providers" variant="outlined">
+                <Button component={RouterLink} to={providersPath} variant="outlined">
                   Browse education providers (demo eligibility)
                 </Button>
               </Box>

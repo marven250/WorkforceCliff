@@ -1,19 +1,10 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { verifyAccessToken } from "../auth/tokens";
-import type { AccountRole } from "../../shared/Auth";
+import type { AccountRole, PublicUser } from "../../shared/Auth";
 import { findAccountById } from "../repos/authAccounts";
 
 export interface AuthedRequest extends Request {
-  auth?: {
-    id: number;
-    email: string;
-    role: AccountRole;
-    firstName: string;
-    lastName: string;
-    organizationName: string | null;
-    phone: string | null;
-    state: string | null;
-  };
+  auth?: PublicUser;
 }
 
 function extractBearer(req: Request): string | null {

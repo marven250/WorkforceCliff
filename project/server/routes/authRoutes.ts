@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import type { LoginBody, RegisterLearnerBody } from "../../shared/Auth";
+import { getTenantBySlug } from "../../shared/tenants";
 import { hashPassword, verifyPassword } from "../auth/password";
 import { signAccessToken } from "../auth/tokens";
 import { authenticate, type AuthedRequest } from "../middleware/auth";
@@ -11,8 +12,21 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post("/register", async (req: Request, res: Response) => {
   const body = req.body as RegisterLearnerBody;
-  if (!body?.email || !body?.password || !body?.firstName || !body?.lastName || !body?.phone || !body?.state) {
+  if (
+    !body?.email ||
+    !body?.password ||
+    !body?.firstName ||
+    !body?.lastName ||
+    !body?.phone ||
+    !body?.state ||
+    !body?.employerTenantSlug?.trim()
+  ) {
     res.status(400).json({ error: "Missing required fields" });
+    return;
+  }
+  const employerTenant = getTenantBySlug(body.employerTenantSlug.trim());
+  if (!employerTenant) {
+    res.status(400).json({ error: "Unknown employer" });
     return;
   }
   if (!emailRegex.test(body.email)) {
@@ -37,6 +51,8 @@ router.post("/register", async (req: Request, res: Response) => {
       lastName: body.lastName.trim(),
       phone: body.phone.trim(),
       state: body.state.trim(),
+      employerName: employerTenant.name,
+      employerTenantSlug: employerTenant.slug,
     });
     const token = signAccessToken({ sub: user.id, email: user.email, role: user.role });
     res.status(201).json({ token, user });

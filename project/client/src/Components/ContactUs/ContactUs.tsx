@@ -32,7 +32,7 @@ export default function ContactUs() {
               </Typography>
             </CardContent>
             <CardActions sx={{ px: 2, pb: 2 }}>
-              <Button component={RouterLink} to="/sign-up" variant="contained" color="secondary">
+              <Button component={RouterLink} to="/sign-in" variant="contained" color="secondary">
                 Create learner account
               </Button>
               <Button component={RouterLink} to="/sign-in" variant="text" color="inherit">

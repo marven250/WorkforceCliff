@@ -37,6 +37,7 @@ async function applyAuthAndInquirySchema(database: Database<sqlite3.Database, sq
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
       organization_name TEXT,
+      employer_tenant_slug TEXT,
       phone TEXT,
       state TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -70,6 +71,12 @@ async function applyAuthAndInquirySchema(database: Database<sqlite3.Database, sq
   for (const s of stmts) {
     await database.exec(s);
   }
+}
+
+async function migrateAuthAccountsEmployerTenantSlug(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  const cols = (await database.all(`PRAGMA table_info(auth_accounts)`)) as Array<{ name: string }>;
+  if (cols.some((c: { name: string }) => c.name === "employer_tenant_slug")) return;
+  await database.exec(`ALTER TABLE auth_accounts ADD COLUMN employer_tenant_slug TEXT`);
 }
 
 async function seedDemoAuthAccounts(database: Database<sqlite3.Database, sqlite3.Statement>) {
@@ -155,5 +162,6 @@ export const databaseReady: Promise<void> = (async () => {
   }
 
   await applyAuthAndInquirySchema(db);
+  await migrateAuthAccountsEmployerTenantSlug(db);
   await seedDemoAuthAccounts(db);
 })();

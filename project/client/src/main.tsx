@@ -7,7 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import ReactDOM from "react-dom/client";
 import App from "./Components/App/App.tsx";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import ErrorPage from "./Components/Error/Error.tsx";
 import Providers from "./Components/Providers/Providers.tsx";
 import LandingPage from "./Components/LandingPage/LandingPage.tsx";
@@ -25,6 +25,11 @@ import AdminInquiries from "./Components/Admin/AdminInquiries.tsx";
 import EmployerInquiryPage from "./Components/ForEmployers/EmployerInquiryPage.tsx";
 import ProviderInquiryPage from "./Components/ForPartners/ProviderInquiryPage.tsx";
 import ForLearnersPage from "./Components/ForLearners/ForLearnersPage.tsx";
+import SelectTenantPage from "./Components/Tenant/SelectTenantPage.tsx";
+import TenantLayout from "./Components/Tenant/TenantLayout.tsx";
+import TenantHomePage from "./Components/Tenant/TenantHomePage.tsx";
+import DashboardRedirect from "./Components/Auth/DashboardRedirect.tsx";
+import ProvidersRedirect from "./Components/Auth/ProvidersRedirect.tsx";
 
 const router = createBrowserRouter([
   {
@@ -38,19 +43,49 @@ const router = createBrowserRouter([
       },
       {
         path: "/sign-in",
-        element: <SignIn />,
+        element: <SelectTenantPage />,
       },
       {
         path: "/sign-up",
-        element: <SignUpLearner />,
+        element: <Navigate to="/sign-in" replace />,
       },
       {
         path: "/dashboard",
-        element: (
-          <RequireAuth>
-            <Dashboard />
-          </RequireAuth>
-        ),
+        element: <DashboardRedirect />,
+      },
+      {
+        path: "org/:tenantSlug",
+        element: <TenantLayout />,
+        children: [
+          {
+            index: true,
+            element: <TenantHomePage />,
+          },
+          {
+            path: "sign-in",
+            element: <SignIn />,
+          },
+          {
+            path: "sign-up",
+            element: <SignUpLearner />,
+          },
+          {
+            path: "dashboard",
+            element: (
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: "providers",
+            element: (
+              <RequireAuth roles={["learner"]}>
+                <Providers />
+              </RequireAuth>
+            ),
+          },
+        ],
       },
       {
         path: "/admin/inquiries",
@@ -78,11 +113,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/providers",
-        element: (
-          <RequireAuth roles={["learner"]}>
-            <Providers />
-          </RequireAuth>
-        ),
+        element: <ProvidersRedirect />,
       },
       {
         path: "/privacy",
