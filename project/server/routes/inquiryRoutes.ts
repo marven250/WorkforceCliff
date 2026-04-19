@@ -2,10 +2,11 @@ import { Router, type Request, type Response } from "express";
 import type { EducationProviderInquiryInput, EmployerInquiryInput } from "../../shared/Inquiry";
 import { notifyAdminsEducationProviderInquiry, notifyAdminsEmployerInquiry } from "../mail/inquiryNotifications";
 import { insertEducationProviderInquiry, insertEmployerInquiry } from "../repos/inquiries";
+import { inquiryLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
-router.post("/employer", async (req: Request, res: Response) => {
+router.post("/employer", inquiryLimiter, async (req: Request, res: Response) => {
   const b = req.body as Partial<EmployerInquiryInput>;
   if (
     !b.organizationLegalName ||
@@ -31,6 +32,8 @@ router.post("/employer", async (req: Request, res: Response) => {
   try {
     const id = await insertEmployerInquiry(input);
     console.info(`[employer inquiry] id=${id} org=${input.organizationLegalName} email=${input.email}`);
+
+  
     void notifyAdminsEmployerInquiry(id, input).catch((err) =>
       console.error("[mail] employer inquiry notification failed:", err),
     );
@@ -41,7 +44,7 @@ router.post("/employer", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/education-provider", async (req: Request, res: Response) => {
+router.post("/education-provider", inquiryLimiter, async (req: Request, res: Response) => {
   const b = req.body as Partial<EducationProviderInquiryInput>;
   if (!b.institutionName || !b.contactName || !b.email || !b.phone || !b.state) {
     res.status(400).json({ error: "Missing required education provider inquiry fields" });

@@ -9,7 +9,8 @@ export interface AuthAccountRow {
   first_name: string;
   last_name: string;
   organization_name: string | null;
-  employer_tenant_slug: string | null;
+  organization_id: number | null;
+  organization_slug: string | null;
   phone: string | null;
   state: string | null;
 }
@@ -22,26 +23,26 @@ function rowToPublic(row: AuthAccountRow): PublicUser {
     firstName: row.first_name,
     lastName: row.last_name,
     organizationName: row.organization_name,
-    employerTenantSlug: row.employer_tenant_slug ?? null,
+    organizationId: row.organization_id ?? null,
+    employerTenantSlug: row.organization_slug ?? null,
     phone: row.phone,
     state: row.state,
   };
 }
 
+const accountSelect = `
+  SELECT a.id, a.email, a.password_hash, a.role, a.first_name, a.last_name, a.organization_name,
+         a.organization_id, o.slug AS organization_slug, a.phone, a.state
+  FROM auth_accounts a
+  LEFT JOIN organizations o ON o.id = a.organization_id
+`;
+
 export async function findAccountByEmail(email: string): Promise<AuthAccountRow | undefined> {
-  return db.get<AuthAccountRow>(
-    `SELECT id, email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state
-     FROM auth_accounts WHERE lower(email) = lower(?)`,
-    email,
-  );
+  return db.get<AuthAccountRow>(`${accountSelect} WHERE lower(a.email) = lower(?)`, email);
 }
 
 export async function findAccountById(id: number): Promise<PublicUser | null> {
-  const row = await db.get<AuthAccountRow>(
-    `SELECT id, email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state
-     FROM auth_accounts WHERE id = ?`,
-    id,
-  );
+  const row = await db.get<AuthAccountRow>(`${accountSelect} WHERE a.id = ?`, id);
   return row ? rowToPublic(row) : null;
 }
 
@@ -52,18 +53,18 @@ export async function createLearnerAccount(params: {
   lastName: string;
   phone: string;
   state: string;
-  employerName: string;
-  employerTenantSlug: string;
+  organizationName: string;
+  organizationId: number;
 }): Promise<PublicUser> {
   const result = await db.run(
-    `INSERT INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state)
+    `INSERT INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, organization_id, phone, state)
      VALUES (?, ?, 'learner', ?, ?, ?, ?, ?, ?)`,
     params.email,
     params.passwordHash,
     params.firstName,
     params.lastName,
-    params.employerName,
-    params.employerTenantSlug,
+    params.organizationName,
+    params.organizationId,
     params.phone,
     params.state,
   );

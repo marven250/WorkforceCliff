@@ -1,6 +1,7 @@
 import sqlite3 from "sqlite3";
 import { open, Database } from "sqlite";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "./auth/password";
+import { WORKFORCE_TENANTS } from "../shared/tenants";
 
 /** Education provider catalog + integration metadata (runs before auth tables that FK to `providers`). */
 async function applyProviderCatalogSchema(database: Database<sqlite3.Database, sqlite3.Statement>) {
@@ -163,23 +164,76 @@ async function seedProgramOfferings(database: Database<sqlite3.Database, sqlite3
   }
 }
 
-async function applyAuthAndInquirySchema(database: Database<sqlite3.Database, sqlite3.Statement>) {
-  const stmts = [
-    `CREATE TABLE IF NOT EXISTS auth_accounts (
+/** Employer tenants as first-class rows (FK from accounts and implied by learner eligibility via learner org). */
+async function applyOrganizationsSchema(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  await database.exec(`
+    CREATE TABLE IF NOT EXISTS organizations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-      password_hash TEXT NOT NULL,
-      role TEXT NOT NULL CHECK (role IN ('learner','employer','education_provider','platform_admin')),
-      first_name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      organization_name TEXT,
-      employer_tenant_slug TEXT,
-      phone TEXT,
-      state TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );`,
-    `CREATE TABLE IF NOT EXISTS employer_inquiries (
+      slug TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  for (const t of WORKFORCE_TENANTS) {
+    await database.run(`INSERT OR IGNORE INTO organizations (slug, name) VALUES (?, ?)`, t.slug, t.name);
+  }
+}
+
+async function ensureAuthAccountsTable(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  const row = await database.get<{ name: string }>(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name='auth_accounts'`,
+  );
+  if (!row) {
+    await database.exec(`
+      CREATE TABLE auth_accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('learner','employer','education_provider','platform_admin')),
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        organization_name TEXT,
+        organization_id INTEGER REFERENCES organizations(id),
+        phone TEXT,
+        state TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+    return;
+  }
+  await migrateAuthAccountsOrganizationColumn(database);
+}
+
+async function migrateAuthAccountsOrganizationColumn(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  let cols = (await database.all(`PRAGMA table_info(auth_accounts)`)) as Array<{ name: string }>;
+  let names = new Set(cols.map((c) => c.name));
+  if (!names.has("organization_id")) {
+    await database.exec(
+      `ALTER TABLE auth_accounts ADD COLUMN organization_id INTEGER REFERENCES organizations(id)`,
+    );
+    cols = (await database.all(`PRAGMA table_info(auth_accounts)`)) as Array<{ name: string }>;
+    names = new Set(cols.map((c) => c.name));
+  }
+  if (names.has("employer_tenant_slug")) {
+    await database.exec(`
+      UPDATE auth_accounts
+      SET organization_id = (
+        SELECT o.id FROM organizations o WHERE lower(o.slug) = lower(auth_accounts.employer_tenant_slug)
+      )
+      WHERE employer_tenant_slug IS NOT NULL
+    `);
+    try {
+      await database.exec(`ALTER TABLE auth_accounts DROP COLUMN employer_tenant_slug`);
+    } catch (e) {
+      console.warn("[db] Could not DROP COLUMN employer_tenant_slug (needs SQLite 3.35+).", e);
+    }
+  }
+}
+
+async function ensureEmployerInquiriesTable(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  await database.exec(`
+    CREATE TABLE IF NOT EXISTS employer_inquiries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       organization_legal_name TEXT NOT NULL,
       contact_first_name TEXT NOT NULL,
@@ -193,8 +247,13 @@ async function applyAuthAndInquirySchema(database: Database<sqlite3.Database, sq
       claimed_by_user_id INTEGER REFERENCES auth_accounts(id),
       claimed_at TEXT,
       completed_at TEXT
-    );`,
-    `CREATE TABLE IF NOT EXISTS education_provider_inquiries (
+    );
+  `);
+}
+
+async function ensureEducationProviderInquiriesTable(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  await database.exec(`
+    CREATE TABLE IF NOT EXISTS education_provider_inquiries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       institution_name TEXT NOT NULL,
       contact_name TEXT NOT NULL,
@@ -208,27 +267,52 @@ async function applyAuthAndInquirySchema(database: Database<sqlite3.Database, sq
       claimed_by_user_id INTEGER REFERENCES auth_accounts(id),
       claimed_at TEXT,
       completed_at TEXT
-    );`,
-    `CREATE TABLE IF NOT EXISTS learner_eligibility_submissions (
+    );
+  `);
+}
+
+async function ensureLearnerEligibilitySubmissionsTable(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  const row = await database.get<{ name: string }>(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name='learner_eligibility_submissions'`,
+  );
+  if (!row) {
+    await database.exec(`
+      CREATE TABLE learner_eligibility_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        learner_account_id INTEGER NOT NULL REFERENCES auth_accounts(id),
+        provider_id INTEGER NOT NULL REFERENCES providers(id),
+        status TEXT NOT NULL CHECK (status IN ('pending','eligible','ineligible')) DEFAULT 'pending',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        decided_at TEXT,
+        UNIQUE(learner_account_id, provider_id)
+      );
+    `);
+    return;
+  }
+  const cols = (await database.all(`PRAGMA table_info(learner_eligibility_submissions)`)) as Array<{ name: string }>;
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("employer_tenant_slug")) {
+    return;
+  }
+  await database.exec(`DROP TABLE IF EXISTS _les_rebuild`);
+  await database.exec(`
+    CREATE TABLE _les_rebuild (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       learner_account_id INTEGER NOT NULL REFERENCES auth_accounts(id),
       provider_id INTEGER NOT NULL REFERENCES providers(id),
-      employer_tenant_slug TEXT NOT NULL,
       status TEXT NOT NULL CHECK (status IN ('pending','eligible','ineligible')) DEFAULT 'pending',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       decided_at TEXT,
       UNIQUE(learner_account_id, provider_id)
-    );`,
-  ];
-  for (const s of stmts) {
-    await database.exec(s);
-  }
-}
-
-async function migrateAuthAccountsEmployerTenantSlug(database: Database<sqlite3.Database, sqlite3.Statement>) {
-  const cols = (await database.all(`PRAGMA table_info(auth_accounts)`)) as Array<{ name: string }>;
-  if (cols.some((c: { name: string }) => c.name === "employer_tenant_slug")) return;
-  await database.exec(`ALTER TABLE auth_accounts ADD COLUMN employer_tenant_slug TEXT`);
+    );
+  `);
+  await database.exec(`
+    INSERT INTO _les_rebuild (id, learner_account_id, provider_id, status, created_at, decided_at)
+    SELECT id, learner_account_id, provider_id, status, created_at, decided_at
+    FROM learner_eligibility_submissions
+  `);
+  await database.exec(`DROP TABLE learner_eligibility_submissions`);
+  await database.exec(`ALTER TABLE _les_rebuild RENAME TO learner_eligibility_submissions`);
 }
 
 async function migrateInquiryClaimColumns(database: Database<sqlite3.Database, sqlite3.Statement>) {
@@ -248,10 +332,24 @@ async function migrateInquiryClaimColumns(database: Database<sqlite3.Database, s
   }
 }
 
+async function createAuthAndEligibilityIndexes(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  await database.exec(`CREATE INDEX IF NOT EXISTS idx_auth_accounts_organization_id ON auth_accounts(organization_id)`);
+  await database.exec(
+    `CREATE INDEX IF NOT EXISTS idx_les_learner ON learner_eligibility_submissions(learner_account_id)`,
+  );
+  await database.exec(`CREATE INDEX IF NOT EXISTS idx_les_status ON learner_eligibility_submissions(status)`);
+}
+
 async function seedDemoAuthAccounts(database: Database<sqlite3.Database, sqlite3.Statement>) {
   const password = "Password123!";
-  const hash = await bcrypt.hash(password, 10);
+  const hash = await hashPassword(password);
   const summitSlug = "summit-hospitality-group";
+  const summit = await database.get<{ id: number }>(`SELECT id FROM organizations WHERE slug = ?`, summitSlug);
+  if (!summit) {
+    throw new Error(`Demo seed requires organization slug "${summitSlug}"`);
+  }
+  const summitOrgId = summit.id;
+
   const seeds: Array<{
     email: string;
     role: "employer" | "education_provider" | "platform_admin" | "learner";
@@ -260,27 +358,37 @@ async function seedDemoAuthAccounts(database: Database<sqlite3.Database, sqlite3
     org: string | null;
     phone: string;
     state: string;
-    employerTenantSlug?: string | null;
+    organizationId: number | null;
   }> = [
     {
-      email: "employer.demo@workforcecliff.local",
+      email: "Morgan.Reyes@summithospitalitygroup.com",
       role: "employer",
       first: "Morgan",
       last: "Reyes",
       org: "Summit Hospitality Group",
-      phone: "5550100",
-      state: "NV",
-      employerTenantSlug: summitSlug,
+      phone: "561-444-1234",
+      state: "FL",
+      organizationId: summitOrgId,
     },
     {
-      email: "learner.demo@workforcecliff.local",
+      email: "Alex.Rivera@summithospitalitygroup.com",
       role: "learner",
       first: "Alex",
       last: "Rivera",
       org: "Summit Hospitality Group",
-      phone: "5550200",
-      state: "NV",
-      employerTenantSlug: summitSlug,
+      phone: "508-222-3333",
+      state: "MA",
+      organizationId: summitOrgId,
+    },
+    {
+      email: "Brandon.Henderson@summithospitalitygroup.com",
+      role: "learner",
+      first: "Brandon",
+      last: "Henderson",
+      org: "Summit Hospitality Group",
+      phone: "614-222-4444",
+      state: "OH",
+      organizationId: summitOrgId,
     },
     {
       email: "partner.demo@workforcecliff.local",
@@ -290,30 +398,33 @@ async function seedDemoAuthAccounts(database: Database<sqlite3.Database, sqlite3
       org: "Ridgeline College of Health Professions",
       phone: "5550101",
       state: "TX",
+      organizationId: null,
     },
     {
-      email: "marven.mathelier@hackbrightacademy.com",
+      email: "marven.mathelier@workforcecliff.com",
       role: "platform_admin",
       first: "Marven",
       last: "Mathelier",
-      org: "Hackbright Academy",
-      phone: "5550102",
-      state: "CA",
+      org: "Workforce Cliff",
+      phone: "760-222-5555",
+      state: "NM",
+      organizationId: null,
     },
     {
-      email: "admin.demo@workforcecliff.local",
+      email: "tyler.khan@workforcecliff.com",
       role: "platform_admin",
-      first: "Platform",
-      last: "Admin",
+      first: "Tyler",
+      last: "Khan",
       org: "Workforce Cliff",
-      phone: "5550199",
-      state: "DC",
+      phone: "317-333-6666",
+      state: "IN",
+      organizationId: null,
     },
-    
   ];
+
   for (const s of seeds) {
     await database.run(
-      `INSERT OR IGNORE INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, employer_tenant_slug, phone, state)
+      `INSERT OR IGNORE INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, organization_id, phone, state)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       s.email,
       hash,
@@ -321,19 +432,20 @@ async function seedDemoAuthAccounts(database: Database<sqlite3.Database, sqlite3
       s.first,
       s.last,
       s.org,
-      s.employerTenantSlug ?? null,
+      s.organizationId,
       s.phone,
       s.state,
     );
   }
   await database.run(
-    `UPDATE auth_accounts SET employer_tenant_slug = ? WHERE email = 'employer.demo@workforcecliff.local' AND (employer_tenant_slug IS NULL OR employer_tenant_slug = '')`,
-    summitSlug,
+    `UPDATE auth_accounts SET organization_id = ?, organization_name = COALESCE(organization_name, 'Summit Hospitality Group')
+     WHERE lower(email) = lower('employer.demo@workforcecliff.local') AND organization_id IS NULL`,
+    summitOrgId,
   );
   await database.run(
-    `UPDATE auth_accounts SET employer_tenant_slug = ?, organization_name = COALESCE(organization_name, 'Summit Hospitality Group')
-     WHERE email = 'learner.demo@workforcecliff.local' AND (employer_tenant_slug IS NULL OR employer_tenant_slug = '')`,
-    summitSlug,
+    `UPDATE auth_accounts SET organization_id = ?, organization_name = COALESCE(organization_name, 'Summit Hospitality Group')
+     WHERE lower(email) = lower('learner.demo@workforcecliff.local') AND organization_id IS NULL`,
+    summitOrgId,
   );
 }
 
@@ -342,14 +454,12 @@ async function seedDemoLearnerEligibility(database: Database<sqlite3.Database, s
     `SELECT id FROM auth_accounts WHERE lower(email) = lower('learner.demo@workforcecliff.local')`,
   );
   if (!row) return;
-  const summitSlug = "summit-hospitality-group";
   for (const providerId of [1, 2]) {
     await database.run(
-      `INSERT OR IGNORE INTO learner_eligibility_submissions (learner_account_id, provider_id, employer_tenant_slug, status)
-       VALUES (?, ?, ?, 'pending')`,
+      `INSERT OR IGNORE INTO learner_eligibility_submissions (learner_account_id, provider_id, status)
+       VALUES (?, ?, 'pending')`,
       row.id,
       providerId,
-      summitSlug,
     );
   }
 }
@@ -364,10 +474,17 @@ export const databaseReady: Promise<void> = (async () => {
     driver: sqlite3.Database,
   });
 
+  await db.exec(`PRAGMA foreign_keys = ON`);
+
   await applyProviderCatalogSchema(db);
-  await applyAuthAndInquirySchema(db);
-  await migrateAuthAccountsEmployerTenantSlug(db);
+  await applyOrganizationsSchema(db);
+  await ensureAuthAccountsTable(db);
+  await ensureEmployerInquiriesTable(db);
+  await ensureEducationProviderInquiriesTable(db);
+  await ensureLearnerEligibilitySubmissionsTable(db);
   await migrateInquiryClaimColumns(db);
+  await createAuthAndEligibilityIndexes(db);
   await seedDemoAuthAccounts(db);
   await seedDemoLearnerEligibility(db);
 })();
+

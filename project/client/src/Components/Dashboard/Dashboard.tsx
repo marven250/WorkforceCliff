@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Container,
   List,
   ListItem,
@@ -19,6 +20,7 @@ import {
 import Paper from "@mui/material/Paper";
 import { useCallback, useEffect, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
+import type { AccountRole } from "../../../../shared/Auth";
 import { useAuth } from "../../context/AuthContext";
 import {
   approveEligibilitySubmission,
@@ -43,6 +45,21 @@ type PortalPayload = {
   nextSteps: string[];
   pendingEligibility?: PendingEligibility[];
 };
+
+function formatRoleLabel(role: AccountRole): string {
+  switch (role) {
+    case "learner":
+      return "Learner";
+    case "employer":
+      return "Employer administrator";
+    case "education_provider":
+      return "Education provider";
+    case "platform_admin":
+      return "Platform administrator";
+    default:
+      return role;
+  }
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -93,15 +110,15 @@ export default function Dashboard() {
       <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
         Welcome{user ? `, ${user.firstName}` : ""}
       </Typography>
-      <Typography variant="body2" color="text.secondary" paragraph>
-        Signed in as <strong>{user?.email}</strong> · role <strong>{user?.role}</strong>
-        {user?.role === "learner" && user.organizationName ? (
-          <>
-            {" "}
-            · employer <strong>{user.organizationName}</strong>
-          </>
-        ) : null}
-      </Typography>
+      {user ? (
+        <Chip
+          label={formatRoleLabel(user.role)}
+          size="small"
+          color="secondary"
+          variant="outlined"
+          sx={{ mb: 2, fontWeight: 600 }}
+        />
+      ) : null}
       {error ? (
         <Typography color="error" paragraph>
           {error}

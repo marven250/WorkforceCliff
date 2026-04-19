@@ -103,6 +103,7 @@ export async function notifyAdminsEmployerInquiry(id: number, input: EmployerInq
   }
   const data = employerPayload(id, input);
   const subject = `New employer inquiry: ${input.organizationLegalName}`;
+ 
   await sendMail({
     to: admins,
     subject,

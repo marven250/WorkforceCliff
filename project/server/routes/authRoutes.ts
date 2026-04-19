@@ -1,16 +1,17 @@
 import { Router, type Request, type Response } from "express";
 import type { LoginBody, RegisterLearnerBody } from "../../shared/Auth";
-import { getTenantBySlug } from "../../shared/tenants";
 import { hashPassword, verifyPassword } from "../auth/password";
 import { signAccessToken } from "../auth/tokens";
 import { authenticate, type AuthedRequest } from "../middleware/auth";
+import { authLimiter } from "../middleware/rateLimiter";
 import { createLearnerAccount, findAccountByEmail, findAccountById } from "../repos/authAccounts";
+import { findOrganizationBySlug } from "../repos/organizations";
 
 const router = Router();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", authLimiter, async (req: Request, res: Response) => {
   const body = req.body as RegisterLearnerBody;
   if (
     !body?.email ||
@@ -24,8 +25,8 @@ router.post("/register", async (req: Request, res: Response) => {
     res.status(400).json({ error: "Missing required fields" });
     return;
   }
-  const employerTenant = getTenantBySlug(body.employerTenantSlug.trim());
-  if (!employerTenant) {
+  const org = await findOrganizationBySlug(body.employerTenantSlug.trim());
+  if (!org) {
     res.status(400).json({ error: "Unknown employer" });
     return;
   }
@@ -51,8 +52,8 @@ router.post("/register", async (req: Request, res: Response) => {
       lastName: body.lastName.trim(),
       phone: body.phone.trim(),
       state: body.state.trim(),
-      employerName: employerTenant.name,
-      employerTenantSlug: employerTenant.slug,
+      organizationName: org.name,
+      organizationId: org.id,
     });
     const token = signAccessToken({ sub: user.id, email: user.email, role: user.role });
     res.status(201).json({ token, user });
@@ -62,7 +63,7 @@ router.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", authLimiter, async (req: Request, res: Response) => {
   const body = req.body as LoginBody;
   if (!body?.email || !body?.password) {
     res.status(400).json({ error: "Email and password are required" });

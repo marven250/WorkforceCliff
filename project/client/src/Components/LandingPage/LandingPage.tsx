@@ -289,7 +289,7 @@ export default function LandingPage() {
                 transparent. That combination is rare.&quot;
               </Typography>
               <Typography variant="subtitle2" sx={{ mt: 2 }}>
-                — Jordan Ellis, HR Operations, Granite Ridge Federal Credit Union (fictional quote)
+                — Jordan Ellis, HR Operations, Granite Ridge Federal Credit Union
               </Typography>
             </CardContent>
           </Card>

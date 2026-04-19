@@ -90,9 +90,7 @@ export default function SignIn() {
           </Button>
         </Stack>
         <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 3 }}>
-          Demo accounts (password <strong>Password123!</strong>): employer{" "}
-          <code>employer.demo@workforcecliff.local</code>, learner <code>learner.demo@workforcecliff.local</code>. Only
-          learner and employer accounts can use this sign-in page.
+          Only learner and employer accounts of this company can use this sign-in page.
         </Typography>
       </Paper>
     </Container>

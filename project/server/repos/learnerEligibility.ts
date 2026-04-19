@@ -13,7 +13,7 @@ export interface PendingEligibilityRow {
   created_at: string;
 }
 
-export async function listPendingForEmployerTenant(tenantSlug: string): Promise<PendingEligibilityRow[]> {
+export async function listPendingForOrganization(organizationId: number): Promise<PendingEligibilityRow[]> {
   const rows = (await db.all(
     `SELECT les.id, les.provider_id, p.name AS provider_name, les.learner_account_id,
             a.email AS learner_email, a.first_name AS learner_first_name, a.last_name AS learner_last_name,
@@ -21,35 +21,40 @@ export async function listPendingForEmployerTenant(tenantSlug: string): Promise<
      FROM learner_eligibility_submissions les
      JOIN auth_accounts a ON a.id = les.learner_account_id
      JOIN providers p ON p.id = les.provider_id
-     WHERE les.employer_tenant_slug = ? AND les.status = 'pending'
+     WHERE les.status = 'pending' AND a.organization_id = ?
      ORDER BY les.id ASC`,
-    tenantSlug,
+    organizationId,
   )) as PendingEligibilityRow[];
   return rows;
 }
 
-export type DecisionResult = "ok" | "not_found" | "wrong_tenant" | "not_pending";
+export type DecisionResult = "ok" | "not_found" | "wrong_organization" | "not_pending";
 
 export async function setEligibilityDecision(
   submissionId: number,
-  tenantSlug: string,
+  employerOrganizationId: number,
   decision: "approve" | "reject",
 ): Promise<DecisionResult> {
-  const row = await db.get<{ employer_tenant_slug: string; status: string }>(
-    `SELECT employer_tenant_slug, status FROM learner_eligibility_submissions WHERE id = ?`,
+  const row = await db.get<{ status: string; learner_org_id: number | null }>(
+    `SELECT les.status, learner.organization_id AS learner_org_id
+     FROM learner_eligibility_submissions les
+     JOIN auth_accounts learner ON learner.id = les.learner_account_id
+     WHERE les.id = ?`,
     submissionId,
   );
   if (!row) return "not_found";
-  if (row.employer_tenant_slug !== tenantSlug) return "wrong_tenant";
+  if (row.learner_org_id !== employerOrganizationId) return "wrong_organization";
   if (row.status !== "pending") return "not_pending";
   const next: EligibilityStatus = decision === "approve" ? "eligible" : "ineligible";
   const r = await db.run(
     `UPDATE learner_eligibility_submissions
      SET status = ?, decided_at = datetime('now')
-     WHERE id = ? AND employer_tenant_slug = ? AND status = 'pending'`,
+     WHERE id = ?
+       AND status = 'pending'
+       AND (SELECT organization_id FROM auth_accounts WHERE id = learner_eligibility_submissions.learner_account_id) = ?`,
     next,
     submissionId,
-    tenantSlug,
+    employerOrganizationId,
   );
   return (r.changes ?? 0) > 0 ? "ok" : "not_pending";
 }
@@ -58,7 +63,6 @@ export type RequestOutcome = "created" | "already_pending" | "already_eligible" 
 
 export async function requestEligibilityForProvider(
   learnerAccountId: number,
-  employerTenantSlug: string,
   providerId: number,
 ): Promise<RequestOutcome> {
   const existing = await db.get<{ status: string }>(
@@ -68,11 +72,10 @@ export async function requestEligibilityForProvider(
   );
   if (!existing) {
     await db.run(
-      `INSERT INTO learner_eligibility_submissions (learner_account_id, provider_id, employer_tenant_slug, status)
-       VALUES (?, ?, ?, 'pending')`,
+      `INSERT INTO learner_eligibility_submissions (learner_account_id, provider_id, status)
+       VALUES (?, ?, 'pending')`,
       learnerAccountId,
       providerId,
-      employerTenantSlug,
     );
     return "created";
   }
@@ -80,9 +83,8 @@ export async function requestEligibilityForProvider(
   if (existing.status === "eligible") return "already_eligible";
   await db.run(
     `UPDATE learner_eligibility_submissions
-     SET status = 'pending', employer_tenant_slug = ?, decided_at = NULL, created_at = datetime('now')
+     SET status = 'pending', decided_at = NULL, created_at = datetime('now')
      WHERE learner_account_id = ? AND provider_id = ?`,
-    employerTenantSlug,
     learnerAccountId,
     providerId,
   );

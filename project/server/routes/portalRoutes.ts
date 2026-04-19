@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { getProvidersForAuthLearner } from "../providers";
 import { authenticate, requireRoles, type AuthedRequest } from "../middleware/auth";
 import {
-  listPendingForEmployerTenant,
+  listPendingForOrganization,
   requestEligibilityForProvider,
   setEligibilityDecision,
 } from "../repos/learnerEligibility";
@@ -29,8 +29,8 @@ router.get("/home", authenticate, async (req: Request, res: Response) => {
       });
       return;
     case "employer": {
-      const tenant = u.employerTenantSlug?.trim() || null;
-      const pendingRows = tenant ? await listPendingForEmployerTenant(tenant) : [];
+      const orgId = u.organizationId;
+      const pendingRows = orgId != null ? await listPendingForOrganization(orgId) : [];
       const pendingEligibility = pendingRows.map((r) => ({
         id: r.id,
         providerId: r.provider_id,
@@ -107,8 +107,7 @@ router.post(
   requireRoles("learner"),
   async (req: Request, res: Response) => {
     const u = (req as AuthedRequest).auth!;
-    const tenant = u.employerTenantSlug?.trim();
-    if (!tenant) {
+    if (u.organizationId == null) {
       res.status(400).json({ error: "Your account is not linked to an employer. You cannot request eligibility yet." });
       return;
     }
@@ -117,7 +116,7 @@ router.post(
       res.status(400).json({ error: "Valid providerId is required" });
       return;
     }
-    const outcome = await requestEligibilityForProvider(u.id, tenant, providerId);
+    const outcome = await requestEligibilityForProvider(u.id, providerId);
     if (outcome === "already_pending") {
       res.status(409).json({ error: "You already have a pending eligibility request for this provider." });
       return;
@@ -136,9 +135,9 @@ router.post(
   requireRoles("employer"),
   async (req: Request, res: Response) => {
     const u = (req as AuthedRequest).auth!;
-    const tenant = u.employerTenantSlug?.trim();
-    if (!tenant) {
-      res.status(403).json({ error: "Your employer account is not linked to a tenant." });
+    const orgId = u.organizationId;
+    if (orgId == null) {
+      res.status(403).json({ error: "Your employer account is not linked to an organization." });
       return;
     }
     const id = Number(req.params.id);
@@ -146,12 +145,12 @@ router.post(
       res.status(400).json({ error: "Invalid id" });
       return;
     }
-    const result = await setEligibilityDecision(id, tenant, "approve");
+    const result = await setEligibilityDecision(id, orgId, "approve");
     if (result === "not_found") {
       res.status(404).json({ error: "Submission not found" });
       return;
     }
-    if (result === "wrong_tenant") {
+    if (result === "wrong_organization") {
       res.status(403).json({ error: "This submission belongs to another employer." });
       return;
     }
@@ -169,9 +168,9 @@ router.post(
   requireRoles("employer"),
   async (req: Request, res: Response) => {
     const u = (req as AuthedRequest).auth!;
-    const tenant = u.employerTenantSlug?.trim();
-    if (!tenant) {
-      res.status(403).json({ error: "Your employer account is not linked to a tenant." });
+    const orgId = u.organizationId;
+    if (orgId == null) {
+      res.status(403).json({ error: "Your employer account is not linked to an organization." });
       return;
     }
     const id = Number(req.params.id);
@@ -179,12 +178,12 @@ router.post(
       res.status(400).json({ error: "Invalid id" });
       return;
     }
-    const result = await setEligibilityDecision(id, tenant, "reject");
+    const result = await setEligibilityDecision(id, orgId, "reject");
     if (result === "not_found") {
       res.status(404).json({ error: "Submission not found" });
       return;
     }
-    if (result === "wrong_tenant") {
+    if (result === "wrong_organization") {
       res.status(403).json({ error: "This submission belongs to another employer." });
       return;
     }

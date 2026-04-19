@@ -1,9 +1,28 @@
-const rateLimit = require("express-rate-limit");
+import rateLimit from "express-rate-limit";
 
-export const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minute window
-  max: 100, // Limit each IP to 100 requests per windowMs
+/** General API traffic (authenticated app usage). */
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
   message: "Too many requests, please try again later.",
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/** Login and registration (credential stuffing / brute force). */
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 25,
+  message: "Too many sign-in attempts from this address. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/** Public marketing inquiry forms (spam / abuse). */
+export const inquiryLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  message: "Too many inquiry submissions. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
 });

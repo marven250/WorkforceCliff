@@ -15,7 +15,9 @@ export interface PublicUser {
   lastName: string;
   /** For learners who registered via a tenant portal: display name of that employer. */
   organizationName: string | null;
-  /** For learners: URL slug of the employer tenant (`/org/:slug`). Null for other roles or legacy rows. */
+  /** FK to `organizations` when the account belongs to an employer tenant. */
+  organizationId: number | null;
+  /** URL slug of the employer organization (`/org/:slug`). Derived from `organizations`; null if not linked. */
   employerTenantSlug: string | null;
   phone: string | null;
   state: string | null;

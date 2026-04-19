@@ -91,8 +91,7 @@ export default function AdminSignIn() {
           </Button>
         </Stack>
         <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 3 }}>
-          Platform admin sample account (password <strong>Password123!</strong>):{" "}
-          <code>admin.demo@workforcecliff.local</code>
+          Only admin accounts can use this sign-in page.
         </Typography>
       </Paper>
     </Container>

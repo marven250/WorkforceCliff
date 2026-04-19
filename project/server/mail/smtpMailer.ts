@@ -80,6 +80,7 @@ export async function sendMail(input: SendMailInput): Promise<void> {
     auth = user && pass ? { user, pass } : undefined;
   } else {
     const creds = mailtrapCredentials();
+    
     if (!creds) {
       console.info(
         "[mail] skipped: set MAIL_FROM and either SMTP_HOST+SMTP_PORT or MAILTRAP_USER+MAILTRAP_PASS",
@@ -112,8 +113,6 @@ export async function sendMail(input: SendMailInput): Promise<void> {
     html: html ?? text,
     replyTo: replyTo || undefined,
   };
-
-  console.log("this is mailOptions", mailOptions);
 
   await transporter.sendMail(mailOptions);
 }
