@@ -1,9 +1,9 @@
 import sqlite3 from "sqlite3";
-import { open } from "sqlite";
-import { Database } from "sqlite";
+import { open, Database } from "sqlite";
 import fs from "fs";
+import bcrypt from "bcryptjs";
 
-const migrations: string[] = [
+const legacyMigrations: string[] = [
   "CREATE TABLE providers (id int, name varchar(255), PRIMARY KEY (id));",
   'INSERT INTO providers (id, name) VALUES (1, "Strayer University");',
   'INSERT INTO providers (id, name) VALUES (2, "Capella University");',
@@ -27,30 +27,133 @@ const migrations: string[] = [
   'INSERT INTO eligibility_submissions (id, user_id, provider_id, status) VALUES (5, 1, 2, "ineligible");',
 ];
 
-export const runDBMigrations = async (db: Database): Promise<Boolean> => {
-  for (const stmt of migrations) {
+async function applyAuthAndInquirySchema(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  const stmts = [
+    `CREATE TABLE IF NOT EXISTS auth_accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL CHECK (role IN ('learner','employer','education_provider','platform_admin')),
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      organization_name TEXT,
+      phone TEXT,
+      state TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );`,
+    `CREATE TABLE IF NOT EXISTS employer_inquiries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      organization_legal_name TEXT NOT NULL,
+      contact_first_name TEXT NOT NULL,
+      contact_last_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      state TEXT NOT NULL,
+      approximate_employees TEXT,
+      message TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );`,
+    `CREATE TABLE IF NOT EXISTS education_provider_inquiries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      institution_name TEXT NOT NULL,
+      contact_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      state TEXT NOT NULL,
+      website TEXT,
+      programs_summary TEXT,
+      message TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );`,
+  ];
+  for (const s of stmts) {
+    await database.exec(s);
+  }
+}
+
+async function seedDemoAuthAccounts(database: Database<sqlite3.Database, sqlite3.Statement>) {
+  const password = "Password123!";
+  const hash = await bcrypt.hash(password, 10);
+  const seeds: Array<{
+    email: string;
+    role: "employer" | "education_provider" | "platform_admin";
+    first: string;
+    last: string;
+    org: string | null;
+    phone: string;
+    state: string;
+  }> = [
+    {
+      email: "employer.demo@workforcecliff.local",
+      role: "employer",
+      first: "Morgan",
+      last: "Reyes",
+      org: "Summit Hospitality Group",
+      phone: "5550100",
+      state: "NV",
+    },
+    {
+      email: "partner.demo@workforcecliff.local",
+      role: "education_provider",
+      first: "Dr. Sam",
+      last: "Okonkwo",
+      org: "Ridgeline College of Health Professions",
+      phone: "5550101",
+      state: "TX",
+    },
+    {
+      email: "admin.demo@workforcecliff.local",
+      role: "platform_admin",
+      first: "Platform",
+      last: "Admin",
+      org: "Workforce Cliff",
+      phone: "5550199",
+      state: "DC",
+    },
+  ];
+  for (const s of seeds) {
+    await database.run(
+      `INSERT OR IGNORE INTO auth_accounts (email, password_hash, role, first_name, last_name, organization_name, phone, state)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      s.email,
+      hash,
+      s.role,
+      s.first,
+      s.last,
+      s.org,
+      s.phone,
+      s.state,
+    );
+  }
+}
+
+export const runDBMigrations = async (database: Database<sqlite3.Database, sqlite3.Statement>): Promise<Boolean> => {
+  for (const stmt of legacyMigrations) {
     try {
-      await db.run(stmt);
+      await database.run(stmt);
     } catch (err: unknown) {
       if (err instanceof Error) console.error(err.message);
     }
   }
-
   return true;
 };
 
 export let db: Database<sqlite3.Database, sqlite3.Statement>;
 
-(async () => {
-  const runMigrations = !fs.existsSync("./db/assessment.db");
+export const databaseReady: Promise<void> = (async () => {
+  const dbFilePath = "./db/assessment.db";
+  const existedBefore = fs.existsSync(dbFilePath);
 
-  // open the database
   db = await open({
-    filename: "./db/assessment.db",
+    filename: dbFilePath,
     driver: sqlite3.Database,
   });
 
-  if (runMigrations) {
+  if (!existedBefore) {
     await runDBMigrations(db);
   }
+
+  await applyAuthAndInquirySchema(db);
+  await seedDemoAuthAccounts(db);
 })();

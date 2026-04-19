@@ -1,21 +1,12 @@
-main {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  place-items: center;
-}
-
-.page-header {
-  text-decoration: underline;
-}
-
 #header {
   display: flex;
   justify-content: space-between;
-  background-color: #1e40af;
+  align-items: center;
 }
 
-.nav-link {
-  padding: 10px 20px;
+.nav-link-brand {
   text-decoration: none;
-  display: inline-block;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
 }

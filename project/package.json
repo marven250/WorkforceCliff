@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts":{
-    "start-frontend": "npm run dev --prefix client",
-    "start-backend": "npm start --prefix server",
-    "dev": "concurrently \"npm run start-frontend\" \"npm run start-backend\""
+    "start-frontend": "yarn --cwd client dev",
+    "start-backend": "yarn --cwd server start",
+    "dev": "concurrently \"yarn start-frontend\" \"yarn start-backend\""
   },
   "keywords": [],
   "author": "",
