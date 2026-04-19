@@ -24,6 +24,7 @@ import Dashboard from "./Components/Dashboard/Dashboard.tsx";
 import AdminInquiries from "./Components/Admin/AdminInquiries.tsx";
 import EmployerInquiryPage from "./Components/ForEmployers/EmployerInquiryPage.tsx";
 import ProviderInquiryPage from "./Components/ForPartners/ProviderInquiryPage.tsx";
+import ForLearnersPage from "./Components/ForLearners/ForLearnersPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -66,6 +67,10 @@ const router = createBrowserRouter([
       {
         path: "/for-partners",
         element: <ProviderInquiryPage />,
+      },
+      {
+        path: "/for-learners",
+        element: <ForLearnersPage />,
       },
       {
         path: "/contact-us",

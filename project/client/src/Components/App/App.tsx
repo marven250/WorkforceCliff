@@ -58,10 +58,10 @@ export default function App() {
             </Button>
             <Button
               component={RouterLink}
-              to="/providers"
+              to="/for-learners"
               color="inherit"
               size="small"
-              sx={navHighlightSx(pathname === "/providers")}
+              sx={navHighlightSx(pathname === "/for-learners")}
             >
               Learners
             </Button>
@@ -79,7 +79,7 @@ export default function App() {
               </>
             ) : (
               <Button component={RouterLink} to="/sign-in" color="inherit" size="small">
-                Learner sign in
+                Employer/learner sign in
               </Button>
             )}
           </Box>
