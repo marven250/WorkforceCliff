@@ -1,4 +1,4 @@
-/** Product-facing roles stored on accounts (plus platform_admin for demo operations). */
+/** Product-facing roles stored on accounts (plus platform_admin for platform administration). */
 export type AccountRole =
   | "learner"
   | "employer"
@@ -40,4 +40,6 @@ export interface RegisterLearnerBody {
 export interface LoginBody {
   email: string;
   password: string;
+  /** When true (tenant `/org/:slug/sign-in`), only `learner` and `employer` accounts may sign in. */
+  tenantPortal?: boolean;
 }

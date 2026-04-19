@@ -1,13 +1,22 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { AccountRole, AuthResponse, LoginBody, PublicUser, RegisterLearnerBody } from "../../../shared/Auth";
-import { clearStoredToken, getStoredToken, loginRequest, meRequest, registerLearnerRequest, setStoredToken } from "../services/api";
+import {
+  clearStoredToken,
+  getStoredToken,
+  loginRequest,
+  meRequest,
+  registerLearnerRequest,
+  setStoredToken,
+} from "../services/api";
 import { clearStoredTenantSlug } from "../lib/tenantSession";
 
 type AuthContextValue = {
   token: string | null;
   user: PublicUser | null;
   loading: boolean;
-  login: (body: LoginBody) => Promise<void>;
+  login: (body: LoginBody) => Promise<AuthResponse>;
+  /** Store a successful auth response (e.g. after validating role before committing session). */
+  applySession: (res: AuthResponse) => void;
   registerLearner: (body: RegisterLearnerBody) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -45,12 +54,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void refreshUser();
   }, [token, refreshUser]);
 
-  const login = useCallback(async (body: LoginBody) => {
-    const res: AuthResponse = await loginRequest(body);
+  const applySession = useCallback((res: AuthResponse) => {
     setStoredToken(res.token);
     setToken(res.token);
     setUser(res.user);
   }, []);
+
+  const login = useCallback(
+    async (body: LoginBody) => {
+      const res: AuthResponse = await loginRequest(body);
+      applySession(res);
+      return res;
+    },
+    [applySession],
+  );
 
   const registerLearner = useCallback(async (body: RegisterLearnerBody) => {
     const res: AuthResponse = await registerLearnerRequest(body);
@@ -80,12 +97,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       loading,
       login,
+      applySession,
       registerLearner,
       logout,
       refreshUser,
       hasRole,
     }),
-    [token, user, loading, login, registerLearner, logout, refreshUser, hasRole],
+    [token, user, loading, login, applySession, registerLearner, logout, refreshUser, hasRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

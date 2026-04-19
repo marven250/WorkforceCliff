@@ -1,6 +1,11 @@
-import express, { Express, Request, Response } from "express";
+import path from "node:path";
+import { config as loadEnv } from "dotenv";
+
+loadEnv({ path: path.resolve(process.cwd(), ".env") });
+loadEnv({ path: path.resolve(process.cwd(), "..", ".env") });
+
+import express, { Express } from "express";
 import cors from "cors";
-import { getAllProviders } from "./providers";
 import { db, databaseReady } from "./db-setup";
 import { limiter } from "./middleware/rateLimiter";
 import authRoutes from "./routes/authRoutes";
@@ -14,12 +19,6 @@ const port = 3001;
 app.use(express.json());
 app.use(cors());
 app.use(limiter);
-
-app.get("/providers/:userId", async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const providers = await getAllProviders(userId);
-  res.json(providers);
-});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/inquiries", inquiryRoutes);

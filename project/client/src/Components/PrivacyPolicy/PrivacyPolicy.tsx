@@ -24,7 +24,7 @@ export default function PrivacyPolicy() {
             Workforce Cliff provides tools for employers, education partners, and learners to explore
             education benefits, pathways, and program connections. Depending on how Workforce Cliff
             is deployed, it may be operated by your employer, a service provider on their behalf, or
-            a demonstration environment for evaluation.
+            another organization responsible for the deployment.
           </Body>
         </Section>
 
@@ -131,7 +131,7 @@ export default function PrivacyPolicy() {
           <Body>
             Questions about this policy or Workforce Cliff privacy practices should be directed to
             your program administrator or the team responsible for your organization&apos;s deployment.
-            If you are evaluating a demonstration build, contact the owner of that environment before
+            If you are evaluating a non-production instance, contact the party operating it before
             submitting sensitive personal information.
           </Body>
         </Section>

@@ -182,8 +182,8 @@ export default function TermsOfUse() {
         <Section title="How to contact us">
           <Body>
             For questions about these Terms, contact the administrator or legal team responsible for
-            your Workforce Cliff deployment. If you are using a demonstration environment, contact
-            the owner of that environment before relying on these Terms for production purposes.
+            your Workforce Cliff deployment. If you are using a non-production deployment, contact
+            the party operating it before relying on these Terms for production purposes.
           </Body>
         </Section>
       </Container>

@@ -1,9 +1,14 @@
 import "./App.css";
 import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
 import { useMemo } from "react";
-import { Link as RouterLink, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link as RouterLink, NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import SiteFooter from "../SiteFooter/SiteFooter";
 import { useAuth } from "../../context/AuthContext";
+import {
+  isGlobalMarketingPath,
+  isPlatformAdminWorkspacePath,
+  postAuthHomePath,
+} from "../../lib/postAuthHome";
 import { getStoredTenantSlug } from "../../lib/tenantSession";
 import { getTenantBySlug } from "../../../../shared/tenants";
 
@@ -22,20 +27,40 @@ export default function App() {
   const tenantSlugFromPath = pathname.match(/^\/org\/([^/]+)/)?.[1];
   const tenantFromPath = useMemo(() => getTenantBySlug(tenantSlugFromPath), [tenantSlugFromPath]);
   const isTenantView = Boolean(tenantSlugFromPath && tenantFromPath);
+  const isAdminMinimalLayout = pathname.startsWith("/admin") && pathname !== "/admin/sign-in";
+  const minimalHeaderNav =
+    isAdminMinimalLayout || isTenantView || user?.role === "platform_admin";
 
   const dashboardPath = useMemo(() => {
     const fromPath = pathname.match(/^\/org\/([^/]+)/)?.[1];
     const slug = fromPath ?? getStoredTenantSlug();
+    if (user?.role === "platform_admin" && !slug) {
+      return "/admin/inquiries";
+    }
     if (slug) return `/org/${slug}/dashboard`;
     return "/dashboard";
-  }, [pathname]);
+  }, [pathname, user?.role]);
 
   const brandHome =
     isTenantView && tenantSlugFromPath
       ? user
         ? dashboardPath
         : `/org/${tenantSlugFromPath}`
-      : "/";
+      : isAdminMinimalLayout
+        ? user
+          ? dashboardPath
+          : "/"
+        : user?.role === "platform_admin"
+          ? dashboardPath
+          : "/";
+
+  if (user?.role === "platform_admin") {
+    if (!isPlatformAdminWorkspacePath(pathname)) {
+      return <Navigate to="/admin/inquiries" replace />;
+    }
+  } else if (user && isGlobalMarketingPath(pathname)) {
+    return <Navigate to={postAuthHomePath(user)} replace />;
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -70,12 +95,36 @@ export default function App() {
             </Box>
           </NavLink>
           <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5 }}>
-            {isTenantView && tenantSlugFromPath ? (
+            {minimalHeaderNav ? (
               user ? (
                 <>
-                  <Button component={RouterLink} to={dashboardPath} color="inherit" size="small">
-                    Dashboard
-                  </Button>
+                  {!isAdminMinimalLayout ? (
+                    <Button component={RouterLink} to={dashboardPath} color="inherit" size="small">
+                      Dashboard
+                    </Button>
+                  ) : null}
+                  {user.role === "platform_admin" ? (
+                    <>
+                      <Button
+                        component={RouterLink}
+                        to="/admin/inquiries"
+                        color="inherit"
+                        size="small"
+                        sx={navHighlightSx(pathname === "/admin/inquiries")}
+                      >
+                        Inquiries
+                      </Button>
+                      <Button
+                        component={RouterLink}
+                        to="/admin/inquiries/archive"
+                        color="inherit"
+                        size="small"
+                        sx={navHighlightSx(pathname === "/admin/inquiries/archive")}
+                      >
+                        Archives
+                      </Button>
+                    </>
+                  ) : null}
                   <Button onClick={logout} color="inherit" size="small">
                     Sign out
                   </Button>
@@ -83,11 +132,11 @@ export default function App() {
               ) : (
                 <Button
                   component={RouterLink}
-                  to={`/org/${tenantSlugFromPath}/sign-in`}
+                  to={isTenantView && tenantSlugFromPath ? `/org/${tenantSlugFromPath}/sign-in` : "/sign-in"}
                   color="inherit"
                   size="small"
                 >
-                  Employer/learner sign in
+                  Sign in
                 </Button>
               )
             ) : (
@@ -132,9 +181,14 @@ export default function App() {
                     </Button>
                   </>
                 ) : (
-                  <Button component={RouterLink} to="/sign-in" color="inherit" size="small">
-                    Employer/learner sign in
-                  </Button>
+                  <>
+                    <Button component={RouterLink} to="/sign-in" color="inherit" size="small">
+                      Sign in
+                    </Button>
+                    <Button component={RouterLink} to="/admin/sign-in" color="inherit" size="small">
+                      Admin sign in
+                    </Button>
+                  </>
                 )}
               </>
             )}

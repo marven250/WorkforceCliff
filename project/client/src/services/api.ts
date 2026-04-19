@@ -1,4 +1,5 @@
-import { Provider } from "../../../shared/Provider";
+import type { ProgramOffering } from "../../../shared/ProgramOffering";
+import type { Provider } from "../../../shared/Provider";
 import type { AuthResponse, LoginBody, PublicUser, RegisterLearnerBody } from "../../../shared/Auth";
 import type { EducationProviderInquiryInput, EmployerInquiryInput } from "../../../shared/Inquiry";
 
@@ -71,11 +72,70 @@ export async function fetchPortalHome(): Promise<unknown> {
   return response.json();
 }
 
-export async function fetchAdminInquiries(): Promise<{
+export async function fetchLearnerProviders(): Promise<Provider[]> {
+  const response = await fetch(`${BASE_URL}/api/portal/learners/me/providers`, {
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not load providers");
+  }
+  return response.json();
+}
+
+export async function fetchLearnerProgramOfferings(): Promise<{ offerings: ProgramOffering[] }> {
+  const response = await fetch(`${BASE_URL}/api/portal/learners/program-offerings`, {
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not load program offerings");
+  }
+  return response.json();
+}
+
+export async function requestLearnerEligibility(providerId: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/portal/learners/eligibility-requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ providerId }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not submit request");
+  }
+}
+
+export async function approveEligibilitySubmission(id: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/portal/employer/eligibility/${id}/approve`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not approve");
+  }
+}
+
+export async function rejectEligibilitySubmission(id: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/portal/employer/eligibility/${id}/reject`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not reject");
+  }
+}
+
+export type AdminInquiryScope = "active" | "archived";
+
+export async function fetchAdminInquiries(scope: AdminInquiryScope = "active"): Promise<{
   employerInquiries: unknown[];
   educationProviderInquiries: unknown[];
 }> {
-  const response = await fetch(`${BASE_URL}/api/admin/inquiries`, {
+  const q = scope === "archived" ? "?scope=archived" : "";
+  const response = await fetch(`${BASE_URL}/api/admin/inquiries${q}`, {
     headers: { ...authHeaders() },
   });
   if (!response.ok) {
@@ -83,6 +143,50 @@ export async function fetchAdminInquiries(): Promise<{
     throw new Error(err.error || "Could not load inquiries");
   }
   return response.json();
+}
+
+export async function claimEmployerInquiry(id: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/admin/inquiries/employer/${id}/claim`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not claim inquiry");
+  }
+}
+
+export async function claimEducationProviderInquiry(id: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/admin/inquiries/education-provider/${id}/claim`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not claim inquiry");
+  }
+}
+
+export async function completeEmployerInquiry(id: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/admin/inquiries/employer/${id}/complete`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not complete inquiry");
+  }
+}
+
+export async function completeEducationProviderInquiry(id: number): Promise<void> {
+  const response = await fetch(`${BASE_URL}/api/admin/inquiries/education-provider/${id}/complete`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "Could not complete inquiry");
+  }
 }
 
 export async function submitEmployerInquiry(body: EmployerInquiryInput): Promise<{ id: number; message: string }> {
@@ -113,8 +217,3 @@ export async function submitEducationProviderInquiry(
   return response.json();
 }
 
-export async function fetchProviders(userId: string): Promise<Array<Provider>> {
-  const response = await fetch(`${BASE_URL}/providers/${userId}`);
-  const providersData = await response.json();
-  return providersData;
-}

@@ -40,8 +40,7 @@ export default function ProviderInquiryPage() {
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.95, fontWeight: 400, maxWidth: 720 }}>
             Colleges, universities, and training organizations can reach out to discuss catalog
-            alignment, learner referrals, and employer-sponsored pathways—mirroring Workforce Edge
-            partnership workflows.
+            alignment, learner referrals, and employer-sponsored pathways.
           </Typography>
         </Container>
       </Box>

@@ -83,6 +83,15 @@ router.post("/login", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Account lookup failed" });
     return;
   }
+  if (body.tenantPortal === true) {
+    if (user.role !== "learner" && user.role !== "employer") {
+      res.status(403).json({
+        error:
+          "This employer portal sign-in is only for learners and employer administrators. Education providers and platform staff should use the appropriate sign-in page.",
+      });
+      return;
+    }
+  }
   const token = signAccessToken({ sub: user.id, email: user.email, role: user.role });
   res.json({ token, user });
 });

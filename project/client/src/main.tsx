@@ -10,7 +10,7 @@ import App from "./Components/App/App.tsx";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import ErrorPage from "./Components/Error/Error.tsx";
 import Providers from "./Components/Providers/Providers.tsx";
-import LandingPage from "./Components/LandingPage/LandingPage.tsx";
+import RootLandingRoute from "./Components/LandingPage/RootLandingRoute.tsx";
 import ContactUs from "./Components/ContactUs/ContactUs.tsx";
 import PrivacyPolicy from "./Components/PrivacyPolicy/PrivacyPolicy.tsx";
 import CookiePolicy from "./Components/CookiePolicy/CookiePolicy.tsx";
@@ -22,6 +22,7 @@ import SignIn from "./Components/Auth/SignIn.tsx";
 import SignUpLearner from "./Components/Auth/SignUpLearner.tsx";
 import Dashboard from "./Components/Dashboard/Dashboard.tsx";
 import AdminInquiries from "./Components/Admin/AdminInquiries.tsx";
+import AdminSignIn from "./Components/Auth/AdminSignIn.tsx";
 import EmployerInquiryPage from "./Components/ForEmployers/EmployerInquiryPage.tsx";
 import ProviderInquiryPage from "./Components/ForPartners/ProviderInquiryPage.tsx";
 import ForLearnersPage from "./Components/ForLearners/ForLearnersPage.tsx";
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LandingPage />,
+        element: <RootLandingRoute />,
       },
       {
         path: "/sign-in",
@@ -86,6 +87,18 @@ const router = createBrowserRouter([
             ),
           },
         ],
+      },
+      {
+        path: "/admin/sign-in",
+        element: <AdminSignIn />,
+      },
+      {
+        path: "/admin/inquiries/archive",
+        element: (
+          <RequireAuth roles={["platform_admin"]}>
+            <AdminInquiries archived />
+          </RequireAuth>
+        ),
       },
       {
         path: "/admin/inquiries",

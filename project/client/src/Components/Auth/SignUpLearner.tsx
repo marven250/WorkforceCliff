@@ -125,7 +125,7 @@ export default function SignUpLearner() {
             onChange={(ev) => setPhone(ev.target.value)}
             required
             fullWidth
-            helperText="Digits only; used for learner success outreach (demo)."
+            helperText="Digits only; used for learner success outreach when enabled by your program."
           />
           <FormControl fullWidth required>
             <InputLabel id="st">State</InputLabel>

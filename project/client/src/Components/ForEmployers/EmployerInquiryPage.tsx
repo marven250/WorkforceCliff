@@ -49,8 +49,7 @@ export default function EmployerInquiryPage() {
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.95, fontWeight: 400, maxWidth: 720 }}>
             Share your talent priorities and benefits landscape. Our team will follow up with how
-            education benefits, pathways, and advising can align to your workforce plan—similar to
-            the Workforce Edge employer experience.
+            education benefits, pathways, and advising can align to your workforce plan.
           </Typography>
         </Container>
       </Box>

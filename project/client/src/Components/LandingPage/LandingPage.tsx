@@ -239,8 +239,7 @@ export default function LandingPage() {
                     goals—when advising and pathways are part of the design.
                   </Typography>
                   <Typography variant="caption" sx={{ opacity: 0.75 }}>
-                    Illustrative metric for demonstration purposes; your results will vary by
-                    population and program design.
+                    Illustrative metric; your results will vary by population and program design.
                   </Typography>
                 </CardContent>
               </Card>
@@ -290,8 +289,7 @@ export default function LandingPage() {
                 transparent. That combination is rare.&quot;
               </Typography>
               <Typography variant="subtitle2" sx={{ mt: 2 }}>
-                — Jordan Ellis, HR Operations, Granite Ridge Federal Credit Union (fictional demo
-                quote)
+                — Jordan Ellis, HR Operations, Granite Ridge Federal Credit Union (fictional quote)
               </Typography>
             </CardContent>
           </Card>

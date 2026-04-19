@@ -49,9 +49,9 @@ export default function CookiePolicy() {
             ]}
           />
           <Body>
-            In a default demonstration deployment, Workforce Cliff may rely primarily on technologies
-            needed to run the application (for example, local storage for session tokens in a
-            single-page app) and may not load third-party advertising cookies.
+            In a typical single-tenant or self-hosted setup, Workforce Cliff may rely primarily on
+            technologies needed to run the application (for example, local storage for session tokens
+            in a single-page app) and may not load third-party advertising cookies.
           </Body>
         </Section>
 

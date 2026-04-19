@@ -72,3 +72,20 @@ export async function createLearnerAccount(params: {
   if (!created) throw new Error("Failed to read created account");
   return created;
 }
+
+const emailLooksValid = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
+export async function listPlatformAdminEmails(): Promise<string[]> {
+  const rows = (await db.all(`SELECT email FROM auth_accounts WHERE role = 'platform_admin'`)) as Array<{
+    email: string;
+  }>;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const r of rows) {
+    const e = r.email.trim().toLowerCase();
+    if (!e || !emailLooksValid(e) || seen.has(e)) continue;
+    seen.add(e);
+    out.push(r.email.trim());
+  }
+  return out;
+}

@@ -8,44 +8,41 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { setStoredTenantSlug } from "../../lib/tenantSession";
-import { getTenantBySlug } from "../../../../shared/tenants";
+import { getStoredTenantSlug } from "../../lib/tenantSession";
+import { loginRequest } from "../../services/api";
 
-export default function SignIn() {
-  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
-  const tenant = getTenantBySlug(tenantSlug);
-  const { login, user } = useAuth();
+export default function AdminSignIn() {
+  const { applySession, user } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user && tenantSlug) {
-      setStoredTenantSlug(tenantSlug);
-      navigate(`/org/${tenantSlug}/dashboard`, { replace: true });
+    if (!user) return;
+    if (user.role === "platform_admin") {
+      navigate("/admin/inquiries", { replace: true });
+      return;
     }
-  }, [user, navigate, tenantSlug]);
-
-  if (!tenant || !tenantSlug) {
-    return <Navigate to="/sign-in" replace />;
-  }
+    const slug = getStoredTenantSlug();
+    navigate(slug ? `/org/${slug}/dashboard` : "/dashboard", { replace: true });
+  }, [user, navigate]);
 
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
       <Paper sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-          Sign in
+          Platform admin sign in
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          {tenant.name} · Workforce Cliff. New to Workforce Cliff? Learners can{" "}
-          <Link component={RouterLink} to={`/org/${tenantSlug}/sign-up`}>
-            create an account
-          </Link>
-          .
+          For Workforce Cliff platform operators. Learners and employer users should use{" "}
+          <Link component={RouterLink} to="/sign-in">
+            Sign in
+          </Link>{" "}
+          to select their organization first.
         </Typography>
         {error ? (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -59,9 +56,13 @@ export default function SignIn() {
             e.preventDefault();
             setError(null);
             try {
-              await login({ email, password, tenantPortal: true });
-              setStoredTenantSlug(tenantSlug);
-              navigate(`/org/${tenantSlug}/dashboard`, { replace: true });
+              const res = await loginRequest({ email, password });
+              if (res.user.role !== "platform_admin") {
+                setError("This page is for platform administrators. Use Sign in to select your employer.");
+                return;
+              }
+              applySession(res);
+              navigate("/admin/inquiries", { replace: true });
             } catch (err) {
               setError(err instanceof Error ? err.message : "Sign-in failed");
             }
@@ -90,9 +91,8 @@ export default function SignIn() {
           </Button>
         </Stack>
         <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 3 }}>
-          Demo accounts (password <strong>Password123!</strong>): employer{" "}
-          <code>employer.demo@workforcecliff.local</code>, learner <code>learner.demo@workforcecliff.local</code>. Only
-          learner and employer accounts can use this sign-in page.
+          Platform admin sample account (password <strong>Password123!</strong>):{" "}
+          <code>admin.demo@workforcecliff.local</code>
         </Typography>
       </Paper>
     </Container>

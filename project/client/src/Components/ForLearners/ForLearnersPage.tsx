@@ -44,7 +44,7 @@ const LEARNER_FAQS: Array<{ question: string; answer: string }> = [
   {
     question: "What if I'm not sure what I want to study?",
     answer:
-      "That's common. Advisors can help you map interests and experience to credentials that align with roles at your employer. In this demo, use Get support to see how a contact flow would work.",
+      "That's common. Advisors can help you map interests and experience to credentials that align with roles at your employer. Use Get support to see how a contact flow would work when enabled for your program.",
   },
   {
     question: "What kinds of education are available with my benefit?",

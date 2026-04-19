@@ -14,8 +14,8 @@ export default function ContactUs() {
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.92, fontWeight: 400, maxWidth: 720 }}>
             Learners create an account to explore benefits and programs. Employers and education
-            providers can reach our teams through tailored inquiry forms—similar to Workforce Edge
-            entry points for employees vs. organizations.
+            providers can reach our teams through tailored inquiry forms—with clear paths for
+            individuals versus organizations.
           </Typography>
         </Container>
       </Box>
@@ -28,7 +28,7 @@ export default function ContactUs() {
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Sign up to access your learner hub, explore connected schools, and prepare for
-                advising conversations (demo).
+                advising conversations.
               </Typography>
             </CardContent>
             <CardActions sx={{ px: 2, pb: 2 }}>

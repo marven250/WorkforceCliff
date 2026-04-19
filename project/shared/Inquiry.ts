@@ -1,4 +1,4 @@
-/** B2B lead from an employer organization (Workforce Edge–style “Talk to sales”). */
+/** B2B lead from an employer organization (e.g. employer inquiry / talk to sales). */
 export interface EmployerInquiryInput {
   organizationLegalName: string;
   contactFirstName: string;
