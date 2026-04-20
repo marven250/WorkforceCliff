@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { filterTenantsByQuery } from "../../../../shared/tenants";
+import { filterTenantsByQuery } from "../../../../shared/tenants.ts";
 
 export default function SelectTenantPage() {
   const [query, setQuery] = useState("");

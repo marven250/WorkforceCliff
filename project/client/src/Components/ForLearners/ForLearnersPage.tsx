@@ -23,7 +23,7 @@ import { useMemo, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getStoredTenantSlug } from "../../lib/tenantSession";
-import { filterTenantsByQuery } from "../../../../shared/tenants";
+import { filterTenantsByQuery } from "../../../../shared/tenants.ts";
 
 const LEARNER_FAQS: Array<{ question: string; answer: string }> = [
   {

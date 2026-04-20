@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useParams } from "react-router-dom";
-import { getTenantBySlug, type WorkforceTenant } from "../../../../shared/tenants";
+import { getTenantBySlug, type WorkforceTenant } from "../../../../shared/tenants.ts";
 
 export type TenantOutletContext = { tenant: WorkforceTenant };
 

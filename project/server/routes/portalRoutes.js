@@ -14,6 +14,7 @@ const providers_1 = require("../services/providers");
 const auth_1 = require("../middleware/auth");
 const learnerEligibility_1 = require("../services/learnerEligibility");
 const programOfferings_1 = require("../services/programOfferings");
+const eligibilityEvents_1 = require("../services/eligibilityEvents");
 const router = (0, express_1.Router)();
 router.get("/home", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -48,7 +49,7 @@ router.get("/home", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0,
             res.json({
                 role: u.role,
                 title: "Employer workspace",
-                summary: `Signed in as ${(_a = u.organizationName) !== null && _a !== void 0 ? _a : "your organization"}. Configure tuition policy, budgets, and approvals.`,
+                summary: `Signed in under ${(_a = u.organizationName) !== null && _a !== void 0 ? _a : "your organization"}.`,
                 nextSteps: [
                     "Review utilization and completion trends",
                     "Align pathways to critical job families",
@@ -83,6 +84,37 @@ router.get("/learners/me/providers", auth_1.authenticate, (0, auth_1.requireRole
     const providers = yield (0, providers_1.getProvidersForAuthLearner)(u.id);
     res.json(providers);
 }));
+router.get("/learners/eligibility/stream", auth_1.authenticate, (0, auth_1.requireRoles)("learner"), (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const u = _req.auth;
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    const remove = (0, eligibilityEvents_1.addLearnerEligibilitySseClient)(res, u.id);
+    const keepAlive = setInterval(() => (0, eligibilityEvents_1.publishEligibilityPing)(), 25000);
+    res.on("close", () => {
+        clearInterval(keepAlive);
+        remove();
+    });
+}));
+router.get("/employer/eligibility/stream", auth_1.authenticate, (0, auth_1.requireRoles)("employer"), (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const u = _req.auth;
+    const orgId = u.organizationId;
+    if (orgId == null) {
+        res.status(403).json({ error: "Your employer account is not linked to an organization." });
+        return;
+    }
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    const remove = (0, eligibilityEvents_1.addEmployerEligibilitySseClient)(res, orgId);
+    const keepAlive = setInterval(() => (0, eligibilityEvents_1.publishEligibilityPing)(), 25000);
+    res.on("close", () => {
+        clearInterval(keepAlive);
+        remove();
+    });
+}));
 router.get("/learners/program-offerings", auth_1.authenticate, (0, auth_1.requireRoles)("learner"), (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const rows = yield (0, programOfferings_1.listProgramOfferingsWithProviders)();
     res.json({
@@ -99,6 +131,7 @@ router.get("/learners/program-offerings", auth_1.authenticate, (0, auth_1.requir
     });
 }));
 router.post("/learners/eligibility-requests", auth_1.authenticate, (0, auth_1.requireRoles)("learner"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const u = req.auth;
     if (u.organizationId == null) {
         res.status(400).json({ error: "Your account is not linked to an employer. You cannot request eligibility yet." });
@@ -118,9 +151,18 @@ router.post("/learners/eligibility-requests", auth_1.authenticate, (0, auth_1.re
         res.status(409).json({ error: "You are already marked eligible for this provider." });
         return;
     }
+    const orgId = u.organizationId;
+    const submissionId = (_a = (yield (0, learnerEligibility_1.getSubmissionIdForLearnerAndProvider)(u.id, providerId))) !== null && _a !== void 0 ? _a : undefined;
+    (0, eligibilityEvents_1.publishEligibilityEvent)({
+        action: outcome === "created" ? "submission_created" : "submission_resubmitted",
+        organizationId: orgId,
+        learnerAccountId: u.id,
+        submissionId,
+    });
     res.status(outcome === "created" ? 201 : 200).json({ ok: true, outcome });
 }));
 router.post("/employer/eligibility/:id/approve", auth_1.authenticate, (0, auth_1.requireRoles)("employer"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const u = req.auth;
     const orgId = u.organizationId;
     if (orgId == null) {
@@ -145,9 +187,19 @@ router.post("/employer/eligibility/:id/approve", auth_1.authenticate, (0, auth_1
         res.status(409).json({ error: "This submission is no longer pending." });
         return;
     }
+    const learnerAccountIdApprove = (_a = (yield (0, learnerEligibility_1.getLearnerAccountIdForSubmission)(id))) !== null && _a !== void 0 ? _a : 0;
+    if (learnerAccountIdApprove) {
+        (0, eligibilityEvents_1.publishEligibilityEvent)({
+            action: "approved",
+            organizationId: orgId,
+            learnerAccountId: learnerAccountIdApprove,
+            submissionId: id,
+        });
+    }
     res.json({ ok: true });
 }));
 router.post("/employer/eligibility/:id/reject", auth_1.authenticate, (0, auth_1.requireRoles)("employer"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const u = req.auth;
     const orgId = u.organizationId;
     if (orgId == null) {
@@ -171,6 +223,15 @@ router.post("/employer/eligibility/:id/reject", auth_1.authenticate, (0, auth_1.
     if (result === "not_pending") {
         res.status(409).json({ error: "This submission is no longer pending." });
         return;
+    }
+    const learnerAccountId = (_a = (yield (0, learnerEligibility_1.getLearnerAccountIdForSubmission)(id))) !== null && _a !== void 0 ? _a : 0;
+    if (learnerAccountId) {
+        (0, eligibilityEvents_1.publishEligibilityEvent)({
+            action: "rejected",
+            organizationId: orgId,
+            learnerAccountId,
+            submissionId: id,
+        });
     }
     res.json({ ok: true });
 }));

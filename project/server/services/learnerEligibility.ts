@@ -90,3 +90,23 @@ export async function requestEligibilityForProvider(
   );
   return "resubmitted";
 }
+
+export async function getSubmissionIdForLearnerAndProvider(
+  learnerAccountId: number,
+  providerId: number,
+): Promise<number | null> {
+  const row = await db.get<{ id: number }>(
+    `SELECT id FROM learner_eligibility_submissions WHERE learner_account_id = ? AND provider_id = ?`,
+    learnerAccountId,
+    providerId,
+  );
+  return row?.id ?? null;
+}
+
+export async function getLearnerAccountIdForSubmission(submissionId: number): Promise<number | null> {
+  const row = await db.get<{ learner_account_id: number }>(
+    `SELECT learner_account_id FROM learner_eligibility_submissions WHERE id = ?`,
+    submissionId,
+  );
+  return row?.learner_account_id ?? null;
+}

@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.listPendingForOrganization = listPendingForOrganization;
 exports.setEligibilityDecision = setEligibilityDecision;
 exports.requestEligibilityForProvider = requestEligibilityForProvider;
+exports.getSubmissionIdForLearnerAndProvider = getSubmissionIdForLearnerAndProvider;
+exports.getLearnerAccountIdForSubmission = getLearnerAccountIdForSubmission;
 const db_setup_1 = require("../db-setup");
 function listPendingForOrganization(organizationId) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -64,5 +66,19 @@ function requestEligibilityForProvider(learnerAccountId, providerId) {
      SET status = 'pending', decided_at = NULL, created_at = datetime('now')
      WHERE learner_account_id = ? AND provider_id = ?`, learnerAccountId, providerId);
         return "resubmitted";
+    });
+}
+function getSubmissionIdForLearnerAndProvider(learnerAccountId, providerId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const row = yield db_setup_1.db.get(`SELECT id FROM learner_eligibility_submissions WHERE learner_account_id = ? AND provider_id = ?`, learnerAccountId, providerId);
+        return (_a = row === null || row === void 0 ? void 0 : row.id) !== null && _a !== void 0 ? _a : null;
+    });
+}
+function getLearnerAccountIdForSubmission(submissionId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const row = yield db_setup_1.db.get(`SELECT learner_account_id FROM learner_eligibility_submissions WHERE id = ?`, submissionId);
+        return (_a = row === null || row === void 0 ? void 0 : row.learner_account_id) !== null && _a !== void 0 ? _a : null;
     });
 }

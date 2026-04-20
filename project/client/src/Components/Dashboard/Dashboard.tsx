@@ -23,6 +23,7 @@ import { Link as RouterLink, useParams } from "react-router-dom";
 import type { AccountRole } from "../../../../shared/Auth";
 import { useAuth } from "../../context/AuthContext";
 import {
+  API_BASE_URL,
   approveEligibilitySubmission,
   fetchPortalHome,
   rejectEligibilitySubmission,
@@ -88,6 +89,27 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, [load]);
+
+  useEffect(() => {
+    if (user?.role !== "employer") return;
+    let closed = false;
+    let timer: number | null = null;
+    const scheduleRefresh = () => {
+      if (timer != null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (closed) return;
+        void load();
+      }, 250);
+    };
+    const es = new EventSource(`${API_BASE_URL}/api/portal/employer/eligibility/stream`, { withCredentials: true });
+    es.addEventListener("eligibility_changed", scheduleRefresh);
+    es.onerror = () => scheduleRefresh();
+    return () => {
+      closed = true;
+      if (timer != null) window.clearTimeout(timer);
+      es.close();
+    };
+  }, [load, user?.role]);
 
   const runDecision = async (id: number, kind: "approve" | "reject") => {
     setBusyId(id);

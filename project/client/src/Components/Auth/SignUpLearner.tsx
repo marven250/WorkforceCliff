@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { usStates } from "../../constants/states";
 import { setStoredTenantSlug } from "../../lib/tenantSession";
-import { getTenantBySlug } from "../../../../shared/tenants";
+import { getTenantBySlug } from "../../../../shared/tenants.ts";
 
 export default function SignUpLearner() {
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();

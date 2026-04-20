@@ -17,6 +17,7 @@ import { Link as RouterLink, useLocation, useNavigate, useSearchParams } from "r
 import type { ProgramOffering } from "../../../../shared/ProgramOffering.ts";
 import type { Provider } from "../../../../shared/Provider.ts";
 import {
+  API_BASE_URL,
   fetchLearnerProgramOfferings,
   fetchLearnerProviders,
   requestLearnerEligibility,
@@ -67,6 +68,28 @@ export default function Providers() {
     };
   }, [offeringsView, loadOfferings, loadProviders]);
 
+  useEffect(() => {
+    if (user?.role !== "learner") return;
+    let closed = false;
+    let timer: number | null = null;
+    const scheduleRefresh = () => {
+      if (timer != null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (closed) return;
+        void loadProviders();
+        if (offeringsView) void loadOfferings();
+      }, 250);
+    };
+    const es = new EventSource(`${API_BASE_URL}/api/portal/learners/eligibility/stream`, { withCredentials: true });
+    es.addEventListener("eligibility_changed", scheduleRefresh);
+    es.onerror = () => scheduleRefresh();
+    return () => {
+      closed = true;
+      if (timer != null) window.clearTimeout(timer);
+      es.close();
+    };
+  }, [loadOfferings, loadProviders, offeringsView, user?.role]);
+
   const providerById = useMemo(() => {
     const m = new Map<number, Provider>();
     for (const p of providers) {
@@ -109,10 +132,6 @@ export default function Providers() {
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 800, mb: 1 }}>
               Browse representative programs from education partners available in Workforce Cliff.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 800 }}>
-              Signed in as <strong>{user?.email}</strong>. Use &quot;Request eligibility&quot; on a program to submit it
-              for employer review; it then appears under connected providers as pending.
             </Typography>
             <Button component={RouterLink} to={pathname} variant="contained" color="secondary" sx={{ mt: 2 }}>
               Back to eligibility and providers
@@ -222,11 +241,6 @@ export default function Providers() {
         <Container maxWidth="lg">
           <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
             Learning provider access
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 720 }}>
-            Signed in as <strong>{user?.email}</strong>. This list shows education partners where you already have an
-            eligibility request (pending, approved, or not eligible). Use sample offerings to start a new request; when a
-            row is eligible, you can open the provider portal when a link is available.
           </Typography>
           <Button
             component={RouterLink}

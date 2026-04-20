@@ -2,11 +2,19 @@ import { Router, type Request, type Response } from "express";
 import { getProvidersForAuthLearner } from "../services/providers";
 import { authenticate, requireRoles, type AuthedRequest } from "../middleware/auth";
 import {
+  getLearnerAccountIdForSubmission,
+  getSubmissionIdForLearnerAndProvider,
   listPendingForOrganization,
   requestEligibilityForProvider,
   setEligibilityDecision,
 } from "../services/learnerEligibility";
 import { listProgramOfferingsWithProviders } from "../services/programOfferings";
+import {
+  addEmployerEligibilitySseClient,
+  addLearnerEligibilitySseClient,
+  publishEligibilityEvent,
+  publishEligibilityPing,
+} from "../services/eligibilityEvents";
 
 const router = Router();
 
@@ -43,7 +51,7 @@ router.get("/home", authenticate, async (req: Request, res: Response) => {
       res.json({
         role: u.role,
         title: "Employer workspace",
-        summary: `Signed in as ${u.organizationName ?? "your organization"}. Configure tuition policy, budgets, and approvals.`,
+        summary: `Signed in under ${u.organizationName ?? "your organization"}.`,
         nextSteps: [
           "Review utilization and completion trends",
           "Align pathways to critical job families",
@@ -79,6 +87,51 @@ router.get("/learners/me/providers", authenticate, requireRoles("learner"), asyn
   const providers = await getProvidersForAuthLearner(u.id);
   res.json(providers);
 });
+
+router.get(
+  "/learners/eligibility/stream",
+  authenticate,
+  requireRoles("learner"),
+  async (_req: Request, res: Response) => {
+    const u = (_req as AuthedRequest).auth!;
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const remove = addLearnerEligibilitySseClient(res, u.id);
+    const keepAlive = setInterval(() => publishEligibilityPing(), 25_000);
+    res.on("close", () => {
+      clearInterval(keepAlive);
+      remove();
+    });
+  },
+);
+
+router.get(
+  "/employer/eligibility/stream",
+  authenticate,
+  requireRoles("employer"),
+  async (_req: Request, res: Response) => {
+    const u = (_req as AuthedRequest).auth!;
+    const orgId = u.organizationId;
+    if (orgId == null) {
+      res.status(403).json({ error: "Your employer account is not linked to an organization." });
+      return;
+    }
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const remove = addEmployerEligibilitySseClient(res, orgId);
+    const keepAlive = setInterval(() => publishEligibilityPing(), 25_000);
+    res.on("close", () => {
+      clearInterval(keepAlive);
+      remove();
+    });
+  },
+);
 
 router.get(
   "/learners/program-offerings",
@@ -125,6 +178,14 @@ router.post(
       res.status(409).json({ error: "You are already marked eligible for this provider." });
       return;
     }
+    const orgId = u.organizationId!;
+    const submissionId = (await getSubmissionIdForLearnerAndProvider(u.id, providerId)) ?? undefined;
+    publishEligibilityEvent({
+      action: outcome === "created" ? "submission_created" : "submission_resubmitted",
+      organizationId: orgId,
+      learnerAccountId: u.id,
+      submissionId,
+    });
     res.status(outcome === "created" ? 201 : 200).json({ ok: true, outcome });
   },
 );
@@ -158,6 +219,15 @@ router.post(
       res.status(409).json({ error: "This submission is no longer pending." });
       return;
     }
+    const learnerAccountIdApprove = (await getLearnerAccountIdForSubmission(id)) ?? 0;
+    if (learnerAccountIdApprove) {
+      publishEligibilityEvent({
+        action: "approved",
+        organizationId: orgId,
+        learnerAccountId: learnerAccountIdApprove,
+        submissionId: id,
+      });
+    }
     res.json({ ok: true });
   },
 );
@@ -190,6 +260,15 @@ router.post(
     if (result === "not_pending") {
       res.status(409).json({ error: "This submission is no longer pending." });
       return;
+    }
+    const learnerAccountId = (await getLearnerAccountIdForSubmission(id)) ?? 0;
+    if (learnerAccountId) {
+      publishEligibilityEvent({
+        action: "rejected",
+        organizationId: orgId,
+        learnerAccountId,
+        submissionId: id,
+      });
     }
     res.json({ ok: true });
   },

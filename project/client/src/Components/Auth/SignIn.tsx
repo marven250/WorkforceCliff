@@ -12,7 +12,7 @@ import { Link as RouterLink, Navigate, useNavigate, useParams } from "react-rout
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { setStoredTenantSlug } from "../../lib/tenantSession";
-import { getTenantBySlug } from "../../../../shared/tenants";
+import { getTenantBySlug } from "../../../../shared/tenants.ts";
 
 export default function SignIn() {
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();

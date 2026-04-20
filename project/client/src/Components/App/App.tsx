@@ -10,7 +10,7 @@ import {
   postAuthHomePath,
 } from "../../lib/postAuthHome";
 import { getStoredTenantSlug } from "../../lib/tenantSession";
-import { getTenantBySlug } from "../../../../shared/tenants";
+import { getTenantBySlug } from "../../../../shared/tenants.ts";
 
 const navHighlightSx = (active: boolean) => ({
   color: "inherit",
