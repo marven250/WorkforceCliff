@@ -17,7 +17,7 @@ import portalRoutes from "./routes/portalRoutes";
 
 const app: Express = express();
 const port = Number(process.env.PORT) || 3001;
-const clientDist = path.resolve(__dirname, "..", "client", "dist");
+const clientDist = path.resolve(__dirname, "..",  "client", "dist");
 
 if (process.env.TRUST_PROXY === "1") {
   app.set("trust proxy", 1);

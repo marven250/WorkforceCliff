@@ -28,7 +28,7 @@ const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const portalRoutes_1 = __importDefault(require("./routes/portalRoutes"));
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT) || 3001;
-const clientDist = node_path_1.default.resolve(process.cwd(), "..", "client", "dist");
+const clientDist = node_path_1.default.resolve(__dirname, "..", "client", "dist");
 if (process.env.TRUST_PROXY === "1") {
     app.set("trust proxy", 1);
 }

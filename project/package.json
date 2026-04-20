@@ -5,7 +5,10 @@
   "scripts":{
     "start-frontend": "yarn --cwd client dev",
     "start-backend": "yarn --cwd server start",
-    "dev": "concurrently \"yarn start-frontend\" \"yarn start-backend\""
+    "dev": "concurrently \"yarn start-frontend\" \"yarn start-backend\"",
+    "install:all": "yarn --cwd client install && yarn --cwd server install",
+    "build:all": "yarn --cwd client build && yarn --cwd server build",
+    "start": "yarn --cwd server start"
   },
   "keywords": [],
   "author": "",
