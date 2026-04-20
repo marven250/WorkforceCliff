@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from "express";
-import { getProvidersForAuthLearner } from "../providers";
+import { getProvidersForAuthLearner } from "../services/providers";
 import { authenticate, requireRoles, type AuthedRequest } from "../middleware/auth";
 import {
   listPendingForOrganization,
   requestEligibilityForProvider,
   setEligibilityDecision,
-} from "../repos/learnerEligibility";
-import { listProgramOfferingsWithProviders } from "../repos/programOfferings";
+} from "../services/learnerEligibility";
+import { listProgramOfferingsWithProviders } from "../services/programOfferings";
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import type { EducationProviderInquiryInput, EmployerInquiryInput } from "../../shared/Inquiry";
 import { notifyAdminsEducationProviderInquiry, notifyAdminsEmployerInquiry } from "../mail/inquiryNotifications";
-import { insertEducationProviderInquiry, insertEmployerInquiry } from "../repos/inquiries";
+import { insertEducationProviderInquiry, insertEmployerInquiry } from "../services/inquiries";
 import { inquiryLimiter } from "../middleware/rateLimiter";
 
 const router = Router();

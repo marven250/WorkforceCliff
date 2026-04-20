@@ -1,5 +1,5 @@
-import { db } from "./db-setup";
-import { Provider } from "../shared/Provider";
+import { db } from "../db-setup";
+import { Provider } from "../../shared/Provider";
 
 /** Eligibility rows keyed by `auth_accounts` learner id (Workforce Cliff sign-in). */
 export async function getProvidersForAuthLearner(learnerAccountId: number): Promise<Provider[]> {

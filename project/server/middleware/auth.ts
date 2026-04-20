@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { verifyAccessToken } from "../auth/tokens";
 import type { AccountRole, PublicUser } from "../../shared/Auth";
-import { findAccountById } from "../repos/authAccounts";
+import { findAccountById } from "../services/authAccounts";
 
 export interface AuthedRequest extends Request {
   auth?: PublicUser;

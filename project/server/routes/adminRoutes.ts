@@ -10,7 +10,7 @@ import {
   listEmployerInquiries,
   type EducationProviderInquiryRowDb,
   type EmployerInquiryRowDb,
-} from "../repos/inquiries";
+} from "../services/inquiries";
 
 const router = Router();
 

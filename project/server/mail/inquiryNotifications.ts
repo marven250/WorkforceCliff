@@ -1,6 +1,6 @@
 import Handlebars from "handlebars";
 import type { EducationProviderInquiryInput, EmployerInquiryInput } from "../../shared/Inquiry";
-import { listPlatformAdminEmails } from "../repos/authAccounts";
+import { listPlatformAdminEmails } from "../services/authAccounts";
 import { sendMail } from "./smtpMailer";
 
 const employerText = Handlebars.compile(

@@ -4,8 +4,8 @@ import { hashPassword, verifyPassword } from "../auth/password";
 import { signAccessToken } from "../auth/tokens";
 import { authenticate, type AuthedRequest } from "../middleware/auth";
 import { authLimiter } from "../middleware/rateLimiter";
-import { createLearnerAccount, findAccountByEmail, findAccountById } from "../repos/authAccounts";
-import { findOrganizationBySlug } from "../repos/organizations";
+import { createLearnerAccount, findAccountByEmail, findAccountById } from "../services/authAccounts";
+import { findOrganizationBySlug } from "../services/organizations";
 
 const router = Router();
 
