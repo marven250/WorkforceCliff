@@ -18,6 +18,15 @@ const authAccounts_1 = require("../services/authAccounts");
 const organizations_1 = require("../services/organizations");
 const router = (0, express_1.Router)();
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function setAuthCookie(res, token) {
+    const isProd = process.env.NODE_ENV === "production";
+    res.cookie("wc_token", token, {
+        httpOnly: true,
+        sameSite: isProd ? "none" : "lax",
+        secure: isProd,
+        path: "/",
+    });
+}
 router.post("/register", rateLimiter_1.authLimiter, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const body = req.body;
@@ -62,6 +71,7 @@ router.post("/register", rateLimiter_1.authLimiter, (req, res) => __awaiter(void
             organizationId: org.id,
         });
         const token = (0, tokens_1.signAccessToken)({ sub: user.id, email: user.email, role: user.role });
+        setAuthCookie(res, token);
         res.status(201).json({ token, user });
     }
     catch (e) {
@@ -99,6 +109,7 @@ router.post("/login", rateLimiter_1.authLimiter, (req, res) => __awaiter(void 0,
         }
     }
     const token = (0, tokens_1.signAccessToken)({ sub: user.id, email: user.email, role: user.role });
+    setAuthCookie(res, token);
     res.json({ token, user });
 }));
 router.get("/me", auth_1.authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

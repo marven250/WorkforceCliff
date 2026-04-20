@@ -11,6 +11,16 @@ const router = Router();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function setAuthCookie(res: Response, token: string) {
+  const isProd = process.env.NODE_ENV === "production";
+  res.cookie("wc_token", token, {
+    httpOnly: true,
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
+    path: "/",
+  });
+}
+
 router.post("/register", authLimiter, async (req: Request, res: Response) => {
   const body = req.body as RegisterLearnerBody;
   if (
@@ -56,6 +66,7 @@ router.post("/register", authLimiter, async (req: Request, res: Response) => {
       organizationId: org.id,
     });
     const token = signAccessToken({ sub: user.id, email: user.email, role: user.role });
+    setAuthCookie(res, token);
     res.status(201).json({ token, user });
   } catch (e) {
     console.error(e);
@@ -94,6 +105,7 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
     }
   }
   const token = signAccessToken({ sub: user.id, email: user.email, role: user.role });
+  setAuthCookie(res, token);
   res.json({ token, user });
 });
 

@@ -13,10 +13,25 @@ function extractBearer(req: Request): string | null {
   return h.slice("Bearer ".length).trim() || null;
 }
 
+function getCookie(req: Request, name: string): string | null {
+  const raw = req.headers.cookie;
+  if (!raw) return null;
+  // Minimal cookie parsing (no dependencies). Format: "a=1; b=2"
+  for (const part of raw.split(";")) {
+    const [k, ...rest] = part.trim().split("=");
+    if (!k) continue;
+    if (k === name) {
+      const v = rest.join("=");
+      return v ? decodeURIComponent(v) : "";
+    }
+  }
+  return null;
+}
+
 export const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
-  const token = extractBearer(req);
+  const token = extractBearer(req) ?? getCookie(req, "wc_token");
   if (!token) {
-    res.status(401).json({ error: "Missing or invalid Authorization header" });
+    res.status(401).json({ error: "Missing authentication token" });
     return;
   }
   try {

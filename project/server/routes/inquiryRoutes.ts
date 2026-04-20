@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import type { EducationProviderInquiryInput, EmployerInquiryInput } from "../../shared/Inquiry";
 import { notifyAdminsEducationProviderInquiry, notifyAdminsEmployerInquiry } from "../mail/inquiryNotifications";
 import { insertEducationProviderInquiry, insertEmployerInquiry } from "../services/inquiries";
+import { publishInquiryEvent } from "../services/inquiryEvents";
 import { inquiryLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
@@ -33,7 +34,8 @@ router.post("/employer", inquiryLimiter, async (req: Request, res: Response) => 
     const id = await insertEmployerInquiry(input);
     console.info(`[employer inquiry] id=${id} org=${input.organizationLegalName} email=${input.email}`);
 
-  
+    publishInquiryEvent({ kind: "employer", action: "created", id });
+
     void notifyAdminsEmployerInquiry(id, input).catch((err) =>
       console.error("[mail] employer inquiry notification failed:", err),
     );
@@ -63,6 +65,7 @@ router.post("/education-provider", inquiryLimiter, async (req: Request, res: Res
   try {
     const id = await insertEducationProviderInquiry(input);
     console.info(`[provider inquiry] id=${id} institution=${input.institutionName} email=${input.email}`);
+    publishInquiryEvent({ kind: "education_provider", action: "created", id });
     void notifyAdminsEducationProviderInquiry(id, input).catch((err) =>
       console.error("[mail] education provider inquiry notification failed:", err),
     );

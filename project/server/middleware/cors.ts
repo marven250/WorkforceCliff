@@ -48,6 +48,7 @@ export function buildCorsOptions(): CorsOptions {
         }
         callback(null, false);
       },
+      credentials: true,
       optionsSuccessStatus: 204,
     };
   }
@@ -64,6 +65,7 @@ export function buildCorsOptions(): CorsOptions {
         }
         callback(null, false);
       },
+      credentials: true,
       optionsSuccessStatus: 204,
     };
   }
@@ -75,6 +77,7 @@ export function buildCorsOptions(): CorsOptions {
       }
       callback(null, false);
     },
+    credentials: true,
     optionsSuccessStatus: 204,
   };
 }

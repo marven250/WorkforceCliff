@@ -11,6 +11,7 @@ import {
   type EducationProviderInquiryRowDb,
   type EmployerInquiryRowDb,
 } from "../services/inquiries";
+import { addInquirySseClient, publishInquiryEvent, publishInquiryPing } from "../services/inquiryEvents";
 
 const router = Router();
 
@@ -75,6 +76,29 @@ router.get(
   },
 );
 
+router.get(
+  "/inquiries/stream",
+  authenticate,
+  requireRoles("platform_admin"),
+  async (_req: Request, res: Response) => {
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const { remove } = addInquirySseClient(res);
+
+    const keepAlive = setInterval(() => {
+      publishInquiryPing();
+    }, 25_000);
+
+    res.on("close", () => {
+      clearInterval(keepAlive);
+      remove();
+    });
+  },
+);
+
 router.post(
   "/inquiries/employer/:id/claim",
   authenticate,
@@ -98,6 +122,9 @@ router.post(
     if (outcome === "taken") {
       res.status(409).json({ error: "Another admin has already claimed this inquiry" });
       return;
+    }
+    if (outcome === "claimed") {
+      publishInquiryEvent({ kind: "employer", action: "claimed", id });
     }
     res.json({ ok: true, status: outcome });
   },
@@ -126,6 +153,9 @@ router.post(
     if (outcome === "taken") {
       res.status(409).json({ error: "Another admin has already claimed this inquiry" });
       return;
+    }
+    if (outcome === "claimed") {
+      publishInquiryEvent({ kind: "education_provider", action: "claimed", id });
     }
     res.json({ ok: true, status: outcome });
   },
@@ -159,6 +189,7 @@ router.post(
       res.status(403).json({ error: "Only the admin who claimed this inquiry can mark it complete" });
       return;
     }
+    publishInquiryEvent({ kind: "employer", action: "completed", id });
     res.json({ ok: true });
   },
 );
@@ -191,6 +222,7 @@ router.post(
       res.status(403).json({ error: "Only the admin who claimed this inquiry can mark it complete" });
       return;
     }
+    publishInquiryEvent({ kind: "education_provider", action: "completed", id });
     res.json({ ok: true });
   },
 );

@@ -50,6 +50,7 @@ function buildCorsOptions() {
                 }
                 callback(null, false);
             },
+            credentials: true,
             optionsSuccessStatus: 204,
         };
     }
@@ -66,6 +67,7 @@ function buildCorsOptions() {
                 }
                 callback(null, false);
             },
+            credentials: true,
             optionsSuccessStatus: 204,
         };
     }
@@ -77,6 +79,7 @@ function buildCorsOptions() {
             }
             callback(null, false);
         },
+        credentials: true,
         optionsSuccessStatus: 204,
     };
 }

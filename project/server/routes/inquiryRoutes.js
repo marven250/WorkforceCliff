@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const inquiryNotifications_1 = require("../mail/inquiryNotifications");
 const inquiries_1 = require("../services/inquiries");
+const inquiryEvents_1 = require("../services/inquiryEvents");
 const rateLimiter_1 = require("../middleware/rateLimiter");
 const router = (0, express_1.Router)();
 router.post("/employer", rateLimiter_1.inquiryLimiter, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -38,6 +39,7 @@ router.post("/employer", rateLimiter_1.inquiryLimiter, (req, res) => __awaiter(v
     try {
         const id = yield (0, inquiries_1.insertEmployerInquiry)(input);
         console.info(`[employer inquiry] id=${id} org=${input.organizationLegalName} email=${input.email}`);
+        (0, inquiryEvents_1.publishInquiryEvent)({ kind: "employer", action: "created", id });
         void (0, inquiryNotifications_1.notifyAdminsEmployerInquiry)(id, input).catch((err) => console.error("[mail] employer inquiry notification failed:", err));
         res.status(201).json({ id, message: "Thank you. A Workforce Cliff representative will follow up." });
     }
@@ -65,6 +67,7 @@ router.post("/education-provider", rateLimiter_1.inquiryLimiter, (req, res) => _
     try {
         const id = yield (0, inquiries_1.insertEducationProviderInquiry)(input);
         console.info(`[provider inquiry] id=${id} institution=${input.institutionName} email=${input.email}`);
+        (0, inquiryEvents_1.publishInquiryEvent)({ kind: "education_provider", action: "created", id });
         void (0, inquiryNotifications_1.notifyAdminsEducationProviderInquiry)(id, input).catch((err) => console.error("[mail] education provider inquiry notification failed:", err));
         res.status(201).json({ id, message: "Thank you. Our partnerships team will be in touch." });
     }

@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
+  API_BASE_URL,
   claimEducationProviderInquiry,
   claimEmployerInquiry,
   completeEducationProviderInquiry,
@@ -91,6 +92,32 @@ export default function AdminInquiries({ archived = false }: Props) {
     })();
     return () => {
       cancelled = true;
+    };
+  }, [load]);
+
+  useEffect(() => {
+    let closed = false;
+    let timer: number | null = null;
+
+    const scheduleRefresh = () => {
+      if (timer != null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (closed) return;
+        void load();
+      }, 250);
+    };
+
+    const es = new EventSource(`${API_BASE_URL}/api/admin/inquiries/stream`, { withCredentials: true });
+    es.addEventListener("inquiry_changed", scheduleRefresh);
+    es.onerror = () => {
+      // If the stream drops (deploy, sleep, network), browser will auto-retry.
+      scheduleRefresh();
+    };
+
+    return () => {
+      closed = true;
+      if (timer != null) window.clearTimeout(timer);
+      es.close();
     };
   }, [load]);
 

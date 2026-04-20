@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
 const inquiries_1 = require("../services/inquiries");
+const inquiryEvents_1 = require("../services/inquiryEvents");
 const router = (0, express_1.Router)();
 function mapEmployer(r) {
     var _a, _b, _c;
@@ -66,6 +67,20 @@ router.get("/inquiries", auth_1.authenticate, (0, auth_1.requireRoles)("platform
         educationProviderInquiries: providers.map(mapProvider),
     });
 }));
+router.get("/inquiries/stream", auth_1.authenticate, (0, auth_1.requireRoles)("platform_admin"), (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    const { remove } = (0, inquiryEvents_1.addInquirySseClient)(res);
+    const keepAlive = setInterval(() => {
+        (0, inquiryEvents_1.publishInquiryPing)();
+    }, 25000);
+    res.on("close", () => {
+        clearInterval(keepAlive);
+        remove();
+    });
+}));
 router.post("/inquiries/employer/:id/claim", auth_1.authenticate, (0, auth_1.requireRoles)("platform_admin"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
     if (!Number.isFinite(id) || id <= 0) {
@@ -85,6 +100,9 @@ router.post("/inquiries/employer/:id/claim", auth_1.authenticate, (0, auth_1.req
     if (outcome === "taken") {
         res.status(409).json({ error: "Another admin has already claimed this inquiry" });
         return;
+    }
+    if (outcome === "claimed") {
+        (0, inquiryEvents_1.publishInquiryEvent)({ kind: "employer", action: "claimed", id });
     }
     res.json({ ok: true, status: outcome });
 }));
@@ -107,6 +125,9 @@ router.post("/inquiries/education-provider/:id/claim", auth_1.authenticate, (0, 
     if (outcome === "taken") {
         res.status(409).json({ error: "Another admin has already claimed this inquiry" });
         return;
+    }
+    if (outcome === "claimed") {
+        (0, inquiryEvents_1.publishInquiryEvent)({ kind: "education_provider", action: "claimed", id });
     }
     res.json({ ok: true, status: outcome });
 }));
@@ -134,6 +155,7 @@ router.post("/inquiries/employer/:id/complete", auth_1.authenticate, (0, auth_1.
         res.status(403).json({ error: "Only the admin who claimed this inquiry can mark it complete" });
         return;
     }
+    (0, inquiryEvents_1.publishInquiryEvent)({ kind: "employer", action: "completed", id });
     res.json({ ok: true });
 }));
 router.post("/inquiries/education-provider/:id/complete", auth_1.authenticate, (0, auth_1.requireRoles)("platform_admin"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -160,6 +182,7 @@ router.post("/inquiries/education-provider/:id/complete", auth_1.authenticate, (
         res.status(403).json({ error: "Only the admin who claimed this inquiry can mark it complete" });
         return;
     }
+    (0, inquiryEvents_1.publishInquiryEvent)({ kind: "education_provider", action: "completed", id });
     res.json({ ok: true });
 }));
 exports.default = router;
