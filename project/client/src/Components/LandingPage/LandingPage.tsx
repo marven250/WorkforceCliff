@@ -130,7 +130,7 @@ export default function LandingPage() {
                 Education benefits and upskilling
               </Typography>
               <Typography variant="h2" component="h1" sx={{ fontWeight: 800, mb: 2 }}>
-                Get your workforce ready for what&apos;s next
+                Turn today&apos;s talent into tomorrow&apos;s capability
               </Typography>
               <Typography variant="h6" sx={{ opacity: 0.95, fontWeight: 400, mb: 4, maxWidth: 560 }}>
                 Connect employee learning to your talent needs. Build career pathways, close skill
