@@ -28,6 +28,7 @@ const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const portalRoutes_1 = __importDefault(require("./routes/portalRoutes"));
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT) || 3001;
+const clientDist = node_path_1.default.resolve(process.cwd(), "..", "client", "dist");
 if (process.env.TRUST_PROXY === "1") {
     app.set("trust proxy", 1);
 }
@@ -50,6 +51,18 @@ app.use("/api/auth", authRoutes_1.default);
 app.use("/api/inquiries", inquiryRoutes_1.default);
 app.use("/api/admin", adminRoutes_1.default);
 app.use("/api/portal", portalRoutes_1.default);
+// Serve the built SPA (Vite output) and support deep-link refreshes.
+app.use(express_1.default.static(clientDist));
+app.get("*", (req, res, next) => {
+    if (req.method !== "GET")
+        return next();
+    if (req.path.startsWith("/api/"))
+        return next();
+    // If this looks like a static asset request, let static middleware handle (or 404).
+    if (req.path.includes("."))
+        return next();
+    res.sendFile(node_path_1.default.join(clientDist, "index.html"));
+});
 process.on("exit", () => __awaiter(void 0, void 0, void 0, function* () {
     yield db_setup_1.db.close();
 }));
