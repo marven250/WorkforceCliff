@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "main": "app.ts",
   "scripts": {
-    "start": "yarn tsx app.ts",
-    "dev": "yarn tsx watch app.ts"
+    "start": "node app.js",
+    "dev": "yarn tsx watch app.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
