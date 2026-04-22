@@ -161,7 +161,7 @@ router.post(
   async (req: Request, res: Response) => {
     const u = (req as AuthedRequest).auth!;
     if (u.organizationId == null) {
-      res.status(400).json({ error: "Your account is not linked to an employer. You cannot request eligibility yet." });
+      res.status(400).json({ error: "Your account is not linked to an employer. You cannot check eligibility yet." });
       return;
     }
     const providerId = Number((req.body as { providerId?: unknown }).providerId);

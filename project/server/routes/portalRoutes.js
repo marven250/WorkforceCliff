@@ -134,7 +134,7 @@ router.post("/learners/eligibility-requests", auth_1.authenticate, (0, auth_1.re
     var _a;
     const u = req.auth;
     if (u.organizationId == null) {
-        res.status(400).json({ error: "Your account is not linked to an employer. You cannot request eligibility yet." });
+        res.status(400).json({ error: "Your account is not linked to an employer. You cannot check eligibility yet." });
         return;
     }
     const providerId = Number(req.body.providerId);

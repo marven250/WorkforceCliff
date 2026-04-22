@@ -192,7 +192,7 @@ erDiagram
 
 | Role | Purpose in this app |
 |------|------------------------|
-| **learner** | Signs up under a tenant, requests provider eligibility, browses offerings and connected providers. |
+| **learner** | Signs up under a tenant, checks provider eligibility, browses offerings and connected providers. |
 | **employer** | Same tenant sign-in as learners; reviews **pending** eligibility submissions for their organization. |
 | **education_provider** | Demo “partner workspace” persona; portal home copy only—no dedicated partner portal routes in the client. |
 | **platform_admin** | **Admin sign-in** (`/admin/sign-in`); manages B2B inquiry claim/complete flows. |
@@ -252,7 +252,7 @@ No account required.
 4. **`/org/:tenantSlug/sign-in`** — Sign in with `tenantPortal: true` → dashboard.
 5. **Dashboard** — Sees learner **portal home** copy from `GET /api/portal/home`; shortcuts to browse **offerings** and **connected providers**.
 6. **`/org/:tenantSlug/providers`** (default) — **Learning Provider Access**: lists providers that already have an eligibility submission in **pending**, **eligible**, or **ineligible** state; actions to open portal (if eligible + URL) or **Request again** if ineligible.
-7. **`/org/:tenantSlug/providers?view=offerings`** — **Sample of Degree Programs and Offerings**: catalog cards; **Request eligibility** per offering (by provider) → `POST /api/portal/learners/eligibility-requests` → user may be navigated back to the connected list; new row appears as **pending** for that provider.
+7. **`/org/:tenantSlug/providers?view=offerings`** — **Sample of Degree Programs and Offerings**: catalog cards; **Check eligibility** per offering (by provider) → `POST /api/portal/learners/eligibility-requests` → user may be navigated back to the connected list; new row appears as **pending** for that provider.
 8. **Logout** — Clears token and stored tenant slug (see `AuthContext`).
 
 **API highlights:** `GET /api/portal/learners/me/providers`, `GET /api/portal/learners/program-offerings`, eligibility POST above; all require **learner** JWT.

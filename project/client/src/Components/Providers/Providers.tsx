@@ -207,7 +207,7 @@ export default function Providers() {
                         disabled={busyProviderId !== null}
                         onClick={() => void requestEligibility(o.providerId)}
                       >
-                        {busyProviderId === o.providerId ? "…" : "Request eligibility"}
+                        {busyProviderId === o.providerId ? "…" : "Check eligibility"}
                       </Button>
                     ) : (
                       <Button
@@ -217,7 +217,7 @@ export default function Providers() {
                         disabled={busyProviderId !== null}
                         onClick={() => void requestEligibility(o.providerId)}
                       >
-                        {busyProviderId === o.providerId ? "…" : "Request eligibility"}
+                        {busyProviderId === o.providerId ? "…" : "Check eligibility"}
                       </Button>
                     )}
                   </CardContent>
@@ -308,7 +308,7 @@ export default function Providers() {
               ))}
               {connectedProviders.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                  No connected providers yet. Open sample offerings and use &quot;Request eligibility&quot; on a program
+                  No connected providers yet. Open sample offerings and use &quot;Check eligibility&quot; on a program
                   to add it here as pending.
                 </Typography>
               ) : null}
